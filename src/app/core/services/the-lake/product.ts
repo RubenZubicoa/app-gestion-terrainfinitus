@@ -1,8 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
-import { environment } from '../../../environments/environment.development';
-import { mapProductDBToProduct, Product, ProductCreate, ProductDB, ProductUpdate } from '../models/Product';
+import { environment } from '../../../../environments/environment.development';
+import { Product, ProductDB, mapProductDBToProduct, ProductCreate, ProductUpdate } from '../../models/the-lake/Product';
 
 @Injectable({
   providedIn: 'root',

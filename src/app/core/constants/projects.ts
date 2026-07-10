@@ -1,4 +1,4 @@
-import { Project } from '../models/project';
+import { Project } from "../models/the-lake/project";
 
 export const PROJECTS: readonly Project[] = [
   {
@@ -10,10 +10,8 @@ export const PROJECTS: readonly Project[] = [
     badgeClass: 'bg-sky-600 text-white',
     sections: [
       { id: 'dashboard', label: 'Inicio', path: '/dashboard', icon: 'home' },
-      { id: 'contenidos', label: 'Contenidos', path: '/contenidos', icon: 'document' },
-      { id: 'reservas', label: 'Reservas', path: '/reservas', icon: 'calendar' },
-      { id: 'usuarios', label: 'Usuarios', path: '/usuarios', icon: 'users' },
-      { id: 'configuracion', label: 'Configuración', path: '/configuracion', icon: 'settings' },
+      { id: 'productos', label: 'Productos', path: '/the-lake/productos', icon: 'box' },
+      { id: 'categorias', label: 'Categorías', path: '/the-lake/categorias', icon: 'folder' },
     ],
   },
   {
@@ -25,6 +23,7 @@ export const PROJECTS: readonly Project[] = [
     badgeClass: 'bg-emerald-700 text-white',
     sections: [
       { id: 'dashboard', label: 'Inicio', path: '/dashboard', icon: 'home' },
+      { id: 'reservas', label: 'Reservas', path: '/reservas', icon: 'calendar' },
       { id: 'productos', label: 'Productos', path: '/productos', icon: 'box' },
       { id: 'categorias', label: 'Categorías', path: '/categorias', icon: 'folder' },
       { id: 'marcas', label: 'Marcas', path: '/marcas', icon: 'tag' },

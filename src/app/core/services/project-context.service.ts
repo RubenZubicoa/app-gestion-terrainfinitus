@@ -1,7 +1,7 @@
 import { Injectable, computed, signal } from '@angular/core';
 
 import { DEFAULT_PROJECT_ID, PROJECTS } from '../constants/projects';
-import { Project, ProjectId } from '../models/project';
+import { ProjectId, Project } from '../models/the-lake/project';
 
 const STORAGE_KEY = 'selected-project-id';
 

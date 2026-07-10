@@ -1,9 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
-import { environment } from '../../../environments/environment.development';
-import { AddOrder, mapOrderDBToOrder, Order, OrderDB } from '../models/Order';
-import { checkToken } from '../interceptors/token.interceptor';
+import { environment } from '../../../../environments/environment.development';
+import { AddOrder, mapOrderDBToOrder, Order, OrderDB } from '../../models/the-lake/Order';
+import { checkToken } from '../../interceptors/token.interceptor';
 
 @Injectable({
   providedIn: 'root',

@@ -17,5 +17,8 @@ export const routes: Routes = [
       },
     ],
   },
-  { path: '**', redirectTo: 'dashboard' },
+  {
+    path: 'the-lake',
+    loadChildren: () => import('./the-lake/the-lake.routes').then(m => m.THE_LAKE_ROUTES),
+  },
 ];

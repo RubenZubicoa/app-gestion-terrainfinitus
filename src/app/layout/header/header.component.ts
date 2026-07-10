@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 
-import { ProjectId } from '../../core/models/project';
+import { ProjectId } from '../../core/models/the-lake/project';
 import { ProjectContextService } from '../../core/services/project-context.service';
 
 @Component({
