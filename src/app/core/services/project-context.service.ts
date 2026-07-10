@@ -16,6 +16,8 @@ export class ProjectContextService {
     return this.projects.find((project) => project.id === id) ?? this.projects[0];
   });
 
+  readonly selectedSections = computed(() => this.selectedProject().sections);
+
   selectProject(projectId: ProjectId): void {
     if (!this.projects.some((project) => project.id === projectId)) {
       return;
