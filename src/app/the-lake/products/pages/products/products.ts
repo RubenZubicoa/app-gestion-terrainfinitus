@@ -55,9 +55,20 @@ export class Products implements OnInit {
 
   private readonly categoryMap = computed(() => {
     const map = new Map<string, string>();
+
+    const addCategory = (category: Category, parentLabel?: string): void => {
+      const label = parentLabel ? `${parentLabel} › ${category.label}` : category.label;
+      map.set(category.uuid, label);
+
+      for (const child of category.children ?? []) {
+        addCategory(child, category.label);
+      }
+    };
+
     for (const category of this.categories()) {
-      map.set(category.uuid, category.label);
+      addCategory(category);
     }
+
     return map;
   });
 

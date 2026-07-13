@@ -73,12 +73,13 @@
         </div>
 
         <div>
-          <label for="product-category" class="block text-sm font-medium text-slate-700">
+          <label for="product-parent-category" class="block text-sm font-medium text-slate-700">
             Categoría
           </label>
           <select
-            id="product-category"
-            formControlName="categoryId"
+            id="product-parent-category"
+            formControlName="parentCategoryId"
+            (change)="onParentCategoryChange()"
             class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
           >
             <option value="">Seleccionar categoría</option>
@@ -88,6 +89,24 @@
           </select>
         </div>
       </div>
+
+      @if (hasSubcategories()) {
+        <div>
+          <label for="product-subcategory" class="block text-sm font-medium text-slate-700">
+            Subcategoría
+          </label>
+          <select
+            id="product-subcategory"
+            formControlName="subcategoryId"
+            class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+          >
+            <option value="">Seleccionar subcategoría</option>
+            @for (subcategory of availableSubcategories(); track subcategory.uuid) {
+              <option [value]="subcategory.uuid">{{ subcategory.label }}</option>
+            }
+          </select>
+        </div>
+      }
 
       <div>
         <span class="block text-sm font-medium text-slate-700">Imágenes</span>
