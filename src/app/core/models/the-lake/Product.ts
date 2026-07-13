@@ -44,7 +44,6 @@ export interface ProductCreate {
     price: number;
     stock: number;
     categoryId: Category['uuid'];
-    images: string[];
     options?: ProductOption[];
 }
 

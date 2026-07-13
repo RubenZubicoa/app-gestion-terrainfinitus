@@ -2,19 +2,38 @@ import {
   ChangeDetectionStrategy,
   Component,
   effect,
-  inject,
   input,
+  OnDestroy,
   output,
   signal,
+  untracked,
 } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { map, startWith } from 'rxjs';
 
 import { Brand } from '../../../../core/models/the-lake/Brand';
 import { Category } from '../../../../core/models/the-lake/Category';
-import { Product, ProductCreate, ProductUpdate } from '../../../../core/models/the-lake/Product';
-import { ProductService } from '../../../../core/services/the-lake/product';
+import { Product } from '../../../../core/models/the-lake/Product';
+
+export type ProductFormValues = {
+  name: string;
+  description?: string;
+  price: number;
+  stock: number;
+  brandId: string;
+  categoryId: string;
+};
+
+export type ProductFormSubmit = {
+  uuid?: string;
+  values: ProductFormValues;
+  imageFiles: File[];
+  existingImageUrls: string[];
+};
+
+type ImagePreview = {
+  file: File;
+  previewUrl: string;
+};
 
 @Component({
   selector: 'app-product-form-dialog',
@@ -22,19 +41,17 @@ import { ProductService } from '../../../../core/services/the-lake/product';
   imports: [ReactiveFormsModule],
   templateUrl: './product-form-dialog.html',
 })
-export class ProductFormDialog {
-  private readonly productService = inject(ProductService);
-
+export class ProductFormDialog implements OnDestroy {
   readonly product = input<Product | null>(null);
   readonly brands = input<Brand[]>([]);
   readonly categories = input<Category[]>([]);
 
-  readonly saved = output<void>();
+  readonly submitted = output<ProductFormSubmit>();
   readonly cancelled = output<void>();
 
-  protected readonly saving = signal(false);
-  protected readonly error = signal<string | null>(null);
-  protected readonly brokenImages = signal<Set<string>>(new Set());
+  protected readonly imagePreviews = signal<ImagePreview[]>([]);
+  protected readonly existingImages = signal<string[]>([]);
+  protected readonly brokenExistingImages = signal<Set<string>>(new Set());
 
   protected readonly form = new FormGroup({
     name: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -49,75 +66,94 @@ export class ProductFormDialog {
     }),
     brandId: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     categoryId: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    images: new FormControl('', { nonNullable: true }),
   });
-
-  protected readonly previewImages = toSignal(
-    this.form.controls.images.valueChanges.pipe(
-      startWith(this.form.controls.images.value),
-      map((value) =>
-        value
-          .split(',')
-          .map((url) => url.trim())
-          .filter(Boolean),
-      ),
-    ),
-    { initialValue: [] as string[] },
-  );
 
   constructor() {
     effect(() => {
       const product = this.product();
 
-      if (product) {
-        this.form.patchValue({
-          name: product.name,
-          description: product.description ?? '',
-          price: product.price,
-          stock: product.stock,
-          brandId: product.brandId,
-          categoryId: product.categoryId,
-          images: product.images.join(', '),
-        });
-      } else {
-        this.form.reset({
-          name: '',
-          description: '',
-          price: 0,
-          stock: 0,
-          brandId: '',
-          categoryId: '',
-          images: '',
-        });
-      }
+      untracked(() => {
+        if (product) {
+          this.form.patchValue({
+            name: product.name,
+            description: product.description ?? '',
+            price: product.price,
+            stock: product.stock,
+            brandId: product.brandId,
+            categoryId: product.categoryId,
+          });
+          this.existingImages.set([...product.images]);
+        } else {
+          this.form.reset({
+            name: '',
+            description: '',
+            price: 0,
+            stock: 0,
+            brandId: '',
+            categoryId: '',
+          });
+          this.existingImages.set([]);
+        }
 
-      this.error.set(null);
-      this.brokenImages.set(new Set());
+        this.brokenExistingImages.set(new Set());
+        this.clearNewImagePreviews();
+      });
     });
+  }
 
-    effect(() => {
-      this.previewImages();
-      this.brokenImages.set(new Set());
-    });
+  ngOnDestroy(): void {
+    this.clearNewImagePreviews();
   }
 
   protected get isEditing(): boolean {
     return this.product() !== null;
   }
 
-  protected isImageBroken(url: string): boolean {
-    return this.brokenImages().has(url);
+  protected isExistingImageBroken(url: string): boolean {
+    return this.brokenExistingImages().has(url);
   }
 
-  protected onImageError(url: string): void {
-    this.brokenImages.update((broken) => new Set(broken).add(url));
+  protected onExistingImageError(url: string): void {
+    this.brokenExistingImages.update((broken) => new Set(broken).add(url));
   }
 
-  protected parseImages(value: string): string[] {
-    return value
-      .split(',')
-      .map((url) => url.trim())
-      .filter(Boolean);
+  protected removeExistingImage(index: number): void {
+    this.existingImages.update((images) => images.filter((_, itemIndex) => itemIndex !== index));
+  }
+
+  protected onFilesSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const files = input.files;
+
+    if (!files?.length) {
+      return;
+    }
+
+    const imageFiles = Array.from(files).filter((file) => file.type.startsWith('image/'));
+
+    if (!imageFiles.length) {
+      return;
+    }
+
+    const newPreviews = imageFiles.map((file) => ({
+      file,
+      previewUrl: URL.createObjectURL(file),
+    }));
+
+    this.imagePreviews.update((current) => [...current, ...newPreviews]);
+    input.value = '';
+  }
+
+  protected removeNewImage(index: number): void {
+    this.imagePreviews.update((current) => {
+      const preview = current[index];
+
+      if (preview) {
+        URL.revokeObjectURL(preview.previewUrl);
+      }
+
+      return current.filter((_, itemIndex) => itemIndex !== index);
+    });
   }
 
   protected onSubmit(event: Event): void {
@@ -128,61 +164,33 @@ export class ProductFormDialog {
       return;
     }
 
-    const { name, description, price, stock, brandId, categoryId, images } = this.form.getRawValue();
-    const parsedImages = this.parseImages(images);
-
-    this.saving.set(true);
-    this.error.set(null);
-
+    const { name, description, price, stock, brandId, categoryId } = this.form.getRawValue();
     const product = this.product();
 
-    if (product) {
-      const update: ProductUpdate = {
+    this.submitted.emit({
+      uuid: product?.uuid,
+      values: {
         name,
         description: description || undefined,
         price,
         stock,
         brandId,
         categoryId,
-        images: parsedImages,
-      };
-
-      this.productService.updateProduct(product.uuid, update).subscribe({
-        next: () => {
-          this.saving.set(false);
-          this.saved.emit();
-        },
-        error: () => {
-          this.saving.set(false);
-          this.error.set('No se pudo actualizar el producto.');
-        },
-      });
-      return;
-    }
-
-    const create: ProductCreate = {
-      name,
-      description: description || undefined,
-      price,
-      stock,
-      brandId,
-      categoryId,
-      images: parsedImages,
-    };
-
-    this.productService.createProduct(create).subscribe({
-      next: () => {
-        this.saving.set(false);
-        this.saved.emit();
       },
-      error: () => {
-        this.saving.set(false);
-        this.error.set('No se pudo crear el producto.');
-      },
+      imageFiles: this.imagePreviews().map((preview) => preview.file),
+      existingImageUrls: this.existingImages(),
     });
   }
 
   protected onCancel(): void {
     this.cancelled.emit();
+  }
+
+  private clearNewImagePreviews(): void {
+    for (const preview of this.imagePreviews()) {
+      URL.revokeObjectURL(preview.previewUrl);
+    }
+
+    this.imagePreviews.set([]);
   }
 }

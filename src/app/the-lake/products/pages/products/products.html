@@ -47,7 +47,7 @@
     [product]="editingProduct()"
     [brands]="brands()"
     [categories]="categories()"
-    (saved)="onProductSaved()"
+    (submitted)="onProductSubmitted($event)"
     (cancelled)="closeForm()"
   />
 }

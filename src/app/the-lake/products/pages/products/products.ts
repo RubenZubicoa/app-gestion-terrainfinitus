@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
   inject,
   OnInit,
   signal,
@@ -18,7 +19,8 @@ import {
   DataTableColumn,
   DataTableComponent,
 } from '../../../../shared/components/data-table/data-table';
-import { ProductFormDialog } from '../../components/product-form-dialog/product-form-dialog';
+import { ProductFormDialog, ProductFormSubmit } from '../../components/product-form-dialog/product-form-dialog';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-products',
@@ -33,6 +35,7 @@ export class Products implements OnInit {
   private readonly brandService = inject(BrandService);
   private readonly categoryService = inject(CategoryService);
   private readonly currencyPipe = inject(CurrencyPipe);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly products = signal<Product[]>([]);
   protected readonly brands = signal<Brand[]>([]);
@@ -125,9 +128,16 @@ export class Products implements OnInit {
     this.editingProduct.set(null);
   }
 
-  protected onProductSaved(): void {
-    this.closeForm();
-    this.loadProducts();
+  protected onProductSubmitted(payload: ProductFormSubmit): void {
+    this.productService.createProduct(payload.values, payload.imageFiles).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: () => {
+        this.loadProducts();
+        this.closeForm();
+      },
+      error: () => this.error.set('No se pudo crear el producto.'),
+    });
   }
 
   protected deleteProduct(product: Product): void {

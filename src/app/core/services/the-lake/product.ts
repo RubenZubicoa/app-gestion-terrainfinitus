@@ -31,8 +31,18 @@ export class ProductService {
       .pipe(map((products) => products.map((product) => mapProductDBToProduct(product))));
   }
 
-  createProduct(product: ProductCreate): Observable<Product> {
-    return this.http.post<Product>(this.baseUrl, product, { context: this.context });
+  createProduct(product: ProductCreate, images: File[]): Observable<Product> {
+    let formData = new FormData();
+    formData.append('name', product.name);
+    formData.append('description', product.description || '');
+    formData.append('price', product.price.toString());
+    formData.append('stock', product.stock.toString());
+    formData.append('brandId', product.brandId);
+    formData.append('categoryId', product.categoryId);
+    for (const image of images) {
+      formData.append('images', image);
+    }
+    return this.http.post<Product>(this.baseUrl, formData, { context: this.context });
   }
 
   updateProduct(uuid: string, product: ProductUpdate): Observable<Product> {
