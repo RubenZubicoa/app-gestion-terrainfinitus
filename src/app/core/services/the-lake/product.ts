@@ -68,7 +68,7 @@ export class ProductService {
       formData.append('brandId', product.brandId);
     }
 
-    if (product.categoryId) {
+    if (product.categoryId !== undefined && product.categoryId !== '') {
       formData.append('categoryId', product.categoryId);
     }
 

@@ -150,7 +150,7 @@ export class Products implements OnInit {
             price: payload.values.price,
             stock: payload.values.stock,
             brandId: payload.values.brandId,
-            categoryId: payload.values.category,
+            categoryId: payload.values.categoryId,
             existingImages: payload.existingImageUrls,
           },
           payload.imageFiles,
@@ -174,7 +174,7 @@ export class Products implements OnInit {
           price: payload.values.price,
           stock: payload.values.stock,
           brandId: payload.values.brandId,
-          categoryId: payload.values.category,
+          categoryId: payload.values.categoryId,
         },
         payload.imageFiles,
       )

@@ -27,11 +27,15 @@ export interface CategoryUpdate {
     children?: Category[];
 }
 
-export function mapCategoryDBToCategory(categoryDB: CategoryDB): Category {
+type CategorySource = CategoryDB & { uuid?: string };
+
+export function mapCategoryDBToCategory(categoryDB: CategorySource): Category {
     return {
-        uuid: categoryDB._id,
+        uuid: categoryDB._id ?? categoryDB.uuid,
         label: categoryDB.label,
         description: categoryDB.description,
-        children: categoryDB.children?.map(mapCategoryDBToCategory),
-    }
+        children: categoryDB.children?.map((child) =>
+            mapCategoryDBToCategory(child as CategorySource),
+        ),
+    };
 }

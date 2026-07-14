@@ -23,7 +23,7 @@ export type ProductFormValues = {
   price: number;
   stock: number;
   brandId: string;
-  category: string;
+  categoryId: string;
 };
 
 export type ProductFormSubmit = {
@@ -62,6 +62,7 @@ export class ProductFormDialog implements OnDestroy {
   protected readonly brokenExistingImages = signal<Set<string>>(new Set());
 
   private lastInitializedProductUuid: string | null = null;
+  private categoriesSyncedForProductUuid: string | null = null;
 
   protected readonly form = new FormGroup({
     name: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -118,7 +119,11 @@ export class ProductFormDialog implements OnDestroy {
             this.brokenExistingImages.set(new Set());
             this.clearNewImagePreviews();
             this.lastInitializedProductUuid = productUuid;
-          } else if (categories.length > 0) {
+            this.categoriesSyncedForProductUuid = null;
+          } else if (
+            categories.length > 0 &&
+            this.categoriesSyncedForProductUuid !== productUuid
+          ) {
             this.form.patchValue(
               {
                 parentCategoryId: categorySelection.parentCategoryId,
@@ -126,6 +131,7 @@ export class ProductFormDialog implements OnDestroy {
               },
               { emitEvent: false },
             );
+            this.categoriesSyncedForProductUuid = productUuid;
           }
 
           this.updateSubcategoryValidators();
@@ -143,6 +149,7 @@ export class ProductFormDialog implements OnDestroy {
           this.brokenExistingImages.set(new Set());
           this.clearNewImagePreviews();
           this.lastInitializedProductUuid = null;
+          this.categoriesSyncedForProductUuid = null;
         }
       });
     });
@@ -221,7 +228,7 @@ export class ProductFormDialog implements OnDestroy {
     const { name, description, price, stock, brandId, parentCategoryId, subcategoryId } =
       this.form.getRawValue();
     const product = this.product();
-    const category = this.resolveProductCategory(parentCategoryId, subcategoryId);
+    const categoryId = this.resolveProductCategoryId(parentCategoryId, subcategoryId);
 
     this.submitted.emit({
       uuid: product?.uuid,
@@ -231,7 +238,7 @@ export class ProductFormDialog implements OnDestroy {
         price,
         stock,
         brandId,
-        category,
+        categoryId,
       },
       imageFiles: this.imagePreviews().map((preview) => preview.file),
       existingImageUrls: this.existingImages(),
@@ -242,15 +249,8 @@ export class ProductFormDialog implements OnDestroy {
     this.cancelled.emit();
   }
 
-  private resolveProductCategory(parentCategoryId: string, subcategoryId: string): string {
-    const parent = this.categories().find((category) => category.uuid === parentCategoryId);
-    const hasSubcategories = (parent?.children?.length ?? 0) > 0;
-
-    if (hasSubcategories && subcategoryId) {
-      return subcategoryId;
-    }
-
-    return parentCategoryId;
+  private resolveProductCategoryId(parentCategoryId: string, subcategoryId: string): string {
+    return subcategoryId || parentCategoryId;
   }
 
   private resolveCategorySelection(categoryId: string, categories: Category[]): CategorySelection {
@@ -281,6 +281,12 @@ export class ProductFormDialog implements OnDestroy {
     for (const category of categories) {
       if (category.uuid === categoryId) {
         return { parent, category };
+      }
+
+      for (const child of category.children ?? []) {
+        if (child.uuid === categoryId) {
+          return { parent: category, category: child };
+        }
       }
 
       if (category.children?.length) {
