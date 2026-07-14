@@ -13,4 +13,8 @@ export const THE_LAKE_ROUTES: Routes = [
     path: 'marcas',
     loadChildren: () => import('./brands/brand.routes').then(m => m.BRAND_ROUTES),
   },
+  {
+    path: 'pedidos',
+    loadChildren: () => import('./orders/order.routes').then(m => m.ORDER_ROUTES),
+  },
 ];

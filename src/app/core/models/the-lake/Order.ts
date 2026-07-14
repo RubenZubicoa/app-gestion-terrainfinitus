@@ -2,6 +2,20 @@ import { ProductWithQuantity } from "./Product";
 
 export type OrderStatus = 'pending' | 'shipped' | 'delivered' | 'cancelled';
 
+export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
+  pending: 'Pendiente',
+  shipped: 'Enviado',
+  delivered: 'Entregado',
+  cancelled: 'Cancelado',
+};
+
+export const ORDER_STATUS_OPTIONS: OrderStatus[] = [
+  'pending',
+  'shipped',
+  'delivered',
+  'cancelled',
+];
+
 export interface OrderItem {
   productName: string;
   qty: number;
@@ -41,7 +55,9 @@ export interface Order {
 export type AddOrder = Omit<Order, 'uuid' | 'createdAt' | 'updatedAt' | 'status'> & {
   paymentMethod?: string;
 };
-export type UpdateOrder = Omit<Order, 'uuid' | 'createdAt' | 'updatedAt'>;
+export type UpdateOrder = Partial<
+  Pick<Order, 'dni' | 'name' | 'lastName' | 'address' | 'phone' | 'email' | 'status' | 'total'>
+>;
 
 export function mapOrderDBToOrder(orderDB: OrderDB): Order {
   return {
