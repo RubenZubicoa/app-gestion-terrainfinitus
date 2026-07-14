@@ -1,4 +1,4 @@
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -17,6 +17,7 @@ import {
   OrderStatus,
 } from '../../../../core/models/the-lake/Order';
 import { OrderService } from '../../../../core/services/the-lake/order-service';
+import { formatEuro } from '../../../../shared/utils/currency';
 import {
   DataTableColumn,
   DataTableComponent,
@@ -32,13 +33,12 @@ type StatusFilter = OrderStatus | 'all';
   selector: 'app-orders',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DataTableComponent, OrderDetailDialog],
-  providers: [CurrencyPipe, DatePipe],
+  providers: [DatePipe],
   templateUrl: './orders.html',
   styleUrl: './orders.css',
 })
 export class Orders implements OnInit {
   private readonly orderService = inject(OrderService);
-  private readonly currencyPipe = inject(CurrencyPipe);
   private readonly datePipe = inject(DatePipe);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -103,7 +103,7 @@ export class Orders implements OnInit {
       key: 'total',
       label: 'Total',
       cellClass: 'font-medium text-slate-900',
-      format: (order) => this.currencyPipe.transform(order.total, 'EUR') ?? '',
+      format: (order) => formatEuro(order.total),
     },
     {
       key: 'status',

@@ -55,10 +55,10 @@
                   <td class="px-3 py-2 text-slate-900">{{ item.productName }}</td>
                   <td class="px-3 py-2 text-slate-600">{{ item.qty }}</td>
                   <td class="px-3 py-2 text-slate-600">
-                    {{ item.price | currency: 'EUR' }}
+                    {{ item.price | euro }}
                   </td>
                   <td class="px-3 py-2 text-slate-900">
-                    {{ item.qty * item.price | currency: 'EUR' }}
+                    {{ item.qty * item.price | euro }}
                   </td>
                 </tr>
               }
@@ -69,7 +69,7 @@
                   Total
                 </td>
                 <td class="px-3 py-2 font-semibold text-slate-900">
-                  {{ order().total | currency: 'EUR' }}
+                  {{ order().total | euro }}
                 </td>
               </tr>
             </tfoot>

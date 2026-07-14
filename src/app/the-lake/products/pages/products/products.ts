@@ -1,4 +1,3 @@
-import { CurrencyPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -15,6 +14,7 @@ import { Product } from '../../../../core/models/the-lake/Product';
 import { BrandService } from '../../../../core/services/the-lake/brand';
 import { CategoryService } from '../../../../core/services/the-lake/category';
 import { ProductService } from '../../../../core/services/the-lake/product';
+import { formatEuro } from '../../../../shared/utils/currency';
 import {
   DataTableColumn,
   DataTableComponent,
@@ -26,7 +26,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   selector: 'app-products',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DataTableComponent, ProductFormDialog],
-  providers: [CurrencyPipe],
   templateUrl: './products.html',
   styleUrl: './products.css',
 })
@@ -34,7 +33,6 @@ export class Products implements OnInit {
   private readonly productService = inject(ProductService);
   private readonly brandService = inject(BrandService);
   private readonly categoryService = inject(CategoryService);
-  private readonly currencyPipe = inject(CurrencyPipe);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly products = signal<Product[]>([]);
@@ -92,7 +90,7 @@ export class Products implements OnInit {
       {
         key: 'price',
         label: 'Precio',
-        format: (product) => this.currencyPipe.transform(product.price, 'EUR') ?? '',
+        format: (product) => formatEuro(product.price),
       },
       {
         key: 'stock',

@@ -1,4 +1,4 @@
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -15,6 +15,7 @@ import {
   Order,
   OrderStatus,
 } from '../../../../core/models/the-lake/Order';
+import { EuroPipe } from '../../../../shared/pipes/euro.pipe';
 
 export type OrderDetailSubmit = {
   uuid: string;
@@ -24,7 +25,7 @@ export type OrderDetailSubmit = {
 @Component({
   selector: 'app-order-detail-dialog',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, CurrencyPipe, DatePipe],
+  imports: [ReactiveFormsModule, EuroPipe, DatePipe],
   templateUrl: './order-detail-dialog.html',
 })
 export class OrderDetailDialog {
