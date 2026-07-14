@@ -2,7 +2,7 @@ export type CategoryDB = {
     _id: string;
     label: string;
     description?: string;
-    children?: Category[];
+    children?: CategoryDB[];
     createdAt?: number;
     updatedAt?: number;
     isDeleted?: boolean;
@@ -32,6 +32,6 @@ export function mapCategoryDBToCategory(categoryDB: CategoryDB): Category {
         uuid: categoryDB._id,
         label: categoryDB.label,
         description: categoryDB.description,
-        children: categoryDB.children
+        children: categoryDB.children?.map(mapCategoryDBToCategory),
     }
 }

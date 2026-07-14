@@ -26,11 +26,36 @@ export class BrandService {
   }
 
   createBrand(brand: BrandCreate): Observable<Brand> {
-    return this.http.post<Brand>(this.baseUrl, brand, { context: this.context });
+    const formData = new FormData();
+    formData.append('name', brand.name);
+
+    if (brand.description) {
+      formData.append('description', brand.description);
+    }
+
+    if (brand.logo) {
+      formData.append('logo', brand.logo);
+    }
+
+    return this.http.post<Brand>(this.baseUrl, formData, { context: this.context });
   }
 
   updateBrand(uuid: string, brand: BrandUpdate): Observable<Brand> {
-    return this.http.put<Brand>(`${this.baseUrl}/${uuid}`, brand, { context: this.context });
+    const formData = new FormData();
+
+    if (brand.name) {
+      formData.append('name', brand.name);
+    }
+
+    if (brand.description) {
+      formData.append('description', brand.description);
+    }
+
+    if (brand.logo) {
+      formData.append('logo', brand.logo);
+    }
+
+    return this.http.put<Brand>(`${this.baseUrl}/${uuid}`, formData, { context: this.context });
   }
 
   deleteBrand(uuid: string): Observable<void> {

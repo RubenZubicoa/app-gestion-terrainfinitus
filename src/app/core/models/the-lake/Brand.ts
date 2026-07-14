@@ -17,13 +17,13 @@ export interface Brand {
 
 export interface BrandCreate {
     name: string;
-    logo?: string;
+    logo?: File;
     description?: string;
 }
 
 export interface BrandUpdate {
     name?: string;
-    logo?: string;
+    logo?: File;
     description?: string;
 }
 

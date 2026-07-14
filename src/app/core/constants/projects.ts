@@ -12,6 +12,7 @@ export const PROJECTS: readonly Project[] = [
       { id: 'dashboard', label: 'Inicio', path: '/dashboard', icon: 'home' },
       { id: 'productos', label: 'Productos', path: '/the-lake/productos', icon: 'box' },
       { id: 'categorias', label: 'Categorías', path: '/the-lake/categorias', icon: 'folder' },
+      { id: 'marcas', label: 'Marcas', path: '/the-lake/marcas', icon: 'tag' },
     ],
   },
   {

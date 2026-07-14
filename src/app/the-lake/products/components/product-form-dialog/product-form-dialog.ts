@@ -23,7 +23,7 @@ export type ProductFormValues = {
   price: number;
   stock: number;
   brandId: string;
-  categoryId: string;
+  category: string;
 };
 
 export type ProductFormSubmit = {
@@ -61,6 +61,8 @@ export class ProductFormDialog implements OnDestroy {
   protected readonly existingImages = signal<string[]>([]);
   protected readonly brokenExistingImages = signal<Set<string>>(new Set());
 
+  private lastInitializedProductUuid: string | null = null;
+
   protected readonly form = new FormGroup({
     name: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     description: new FormControl('', { nonNullable: true }),
@@ -95,22 +97,39 @@ export class ProductFormDialog implements OnDestroy {
     effect(() => {
       const product = this.product();
       const categories = this.categories();
+      const productUuid = product?.uuid ?? null;
+      const productChanged = productUuid !== this.lastInitializedProductUuid;
 
       untracked(() => {
         if (product) {
           const categorySelection = this.resolveCategorySelection(product.categoryId, categories);
 
-          this.form.patchValue({
-            name: product.name,
-            description: product.description ?? '',
-            price: product.price,
-            stock: product.stock,
-            brandId: product.brandId,
-            parentCategoryId: categorySelection.parentCategoryId,
-            subcategoryId: categorySelection.subcategoryId,
-          });
-          this.existingImages.set([...product.images]);
-        } else {
+          if (productChanged) {
+            this.form.patchValue({
+              name: product.name,
+              description: product.description ?? '',
+              price: Number(product.price),
+              stock: Number(product.stock),
+              brandId: product.brandId,
+              parentCategoryId: categorySelection.parentCategoryId,
+              subcategoryId: categorySelection.subcategoryId,
+            });
+            this.existingImages.set([...product.images]);
+            this.brokenExistingImages.set(new Set());
+            this.clearNewImagePreviews();
+            this.lastInitializedProductUuid = productUuid;
+          } else if (categories.length > 0) {
+            this.form.patchValue(
+              {
+                parentCategoryId: categorySelection.parentCategoryId,
+                subcategoryId: categorySelection.subcategoryId,
+              },
+              { emitEvent: false },
+            );
+          }
+
+          this.updateSubcategoryValidators();
+        } else if (productChanged) {
           this.form.reset({
             name: '',
             description: '',
@@ -121,11 +140,10 @@ export class ProductFormDialog implements OnDestroy {
             subcategoryId: '',
           });
           this.existingImages.set([]);
+          this.brokenExistingImages.set(new Set());
+          this.clearNewImagePreviews();
+          this.lastInitializedProductUuid = null;
         }
-
-        this.updateSubcategoryValidators();
-        this.brokenExistingImages.set(new Set());
-        this.clearNewImagePreviews();
       });
     });
   }
@@ -140,7 +158,7 @@ export class ProductFormDialog implements OnDestroy {
 
   protected onParentCategoryChange(): void {
     this.form.controls.subcategoryId.setValue('');
-    this.updateSubcategoryValidators();
+    this.updateSubcategoryValidators(true);
   }
 
   protected isExistingImageBroken(url: string): boolean {
@@ -203,7 +221,7 @@ export class ProductFormDialog implements OnDestroy {
     const { name, description, price, stock, brandId, parentCategoryId, subcategoryId } =
       this.form.getRawValue();
     const product = this.product();
-    const categoryId = subcategoryId || parentCategoryId;
+    const category = this.resolveProductCategory(parentCategoryId, subcategoryId);
 
     this.submitted.emit({
       uuid: product?.uuid,
@@ -213,7 +231,7 @@ export class ProductFormDialog implements OnDestroy {
         price,
         stock,
         brandId,
-        categoryId,
+        category,
       },
       imageFiles: this.imagePreviews().map((preview) => preview.file),
       existingImageUrls: this.existingImages(),
@@ -222,6 +240,17 @@ export class ProductFormDialog implements OnDestroy {
 
   protected onCancel(): void {
     this.cancelled.emit();
+  }
+
+  private resolveProductCategory(parentCategoryId: string, subcategoryId: string): string {
+    const parent = this.categories().find((category) => category.uuid === parentCategoryId);
+    const hasSubcategories = (parent?.children?.length ?? 0) > 0;
+
+    if (hasSubcategories && subcategoryId) {
+      return subcategoryId;
+    }
+
+    return parentCategoryId;
   }
 
   private resolveCategorySelection(categoryId: string, categories: Category[]): CategorySelection {
@@ -265,7 +294,7 @@ export class ProductFormDialog implements OnDestroy {
     return null;
   }
 
-  private updateSubcategoryValidators(): void {
+  private updateSubcategoryValidators(resetSubcategory = false): void {
     const parentId = this.form.controls.parentCategoryId.value;
     const parent = this.categories().find((category) => category.uuid === parentId);
     const hasChildren = (parent?.children?.length ?? 0) > 0;
@@ -275,7 +304,10 @@ export class ProductFormDialog implements OnDestroy {
       subcategoryControl.setValidators([Validators.required]);
     } else {
       subcategoryControl.clearValidators();
-      subcategoryControl.setValue('');
+
+      if (resetSubcategory) {
+        subcategoryControl.setValue('');
+      }
     }
 
     subcategoryControl.updateValueAndValidity({ emitEvent: false });

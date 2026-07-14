@@ -54,7 +54,7 @@ export interface ProductUpdate {
     price?: number;
     stock?: number;
     categoryId?: string;
-    images?: string[];
+    existingImages?: string[];
     options?: ProductOption;
 }
 

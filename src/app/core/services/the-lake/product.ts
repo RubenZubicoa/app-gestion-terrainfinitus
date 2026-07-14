@@ -45,8 +45,48 @@ export class ProductService {
     return this.http.post<Product>(this.baseUrl, formData, { context: this.context });
   }
 
-  updateProduct(uuid: string, product: ProductUpdate): Observable<Product> {
-    return this.http.put<Product>(`${this.baseUrl}/${uuid}`, product, { context: this.context });
+  updateProduct(uuid: string, product: ProductUpdate, newImages: File[]): Observable<Product> {
+    const formData = new FormData();
+
+    if (product.name) {
+      formData.append('name', product.name);
+    }
+
+    if (product.description !== undefined) {
+      formData.append('description', product.description);
+    }
+
+    if (product.price !== undefined) {
+      formData.append('price', product.price.toString());
+    }
+
+    if (product.stock !== undefined) {
+      formData.append('stock', product.stock.toString());
+    }
+
+    if (product.brandId) {
+      formData.append('brandId', product.brandId);
+    }
+
+    if (product.categoryId) {
+      formData.append('categoryId', product.categoryId);
+    }
+
+    const existingImages = product.existingImages ?? [];
+
+    for (const url of existingImages) {
+      formData.append('existingImages', url);
+    }
+
+    if (existingImages.length === 0) {
+      formData.append('existingImages', JSON.stringify([]));
+    }
+
+    for (const image of newImages) {
+      formData.append('images', image);
+    }
+
+    return this.http.put<Product>(`${this.baseUrl}/${uuid}`, formData, { context: this.context });
   }
 
   deleteProduct(uuid: string): Observable<void> {

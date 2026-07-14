@@ -140,15 +140,52 @@ export class Products implements OnInit {
   }
 
   protected onProductSubmitted(payload: ProductFormSubmit): void {
-    this.productService.createProduct(payload.values, payload.imageFiles).pipe(
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe({
-      next: () => {
-        this.loadProducts();
-        this.closeForm();
-      },
-      error: () => this.error.set('No se pudo crear el producto.'),
-    });
+    if (payload.uuid) {
+      this.productService
+        .updateProduct(
+          payload.uuid,
+          {
+            name: payload.values.name,
+            description: payload.values.description,
+            price: payload.values.price,
+            stock: payload.values.stock,
+            brandId: payload.values.brandId,
+            categoryId: payload.values.category,
+            existingImages: payload.existingImageUrls,
+          },
+          payload.imageFiles,
+        )
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            this.loadProducts();
+            this.closeForm();
+          },
+          error: () => this.error.set('No se pudo actualizar el producto.'),
+        });
+      return;
+    }
+
+    this.productService
+      .createProduct(
+        {
+          name: payload.values.name,
+          description: payload.values.description,
+          price: payload.values.price,
+          stock: payload.values.stock,
+          brandId: payload.values.brandId,
+          categoryId: payload.values.category,
+        },
+        payload.imageFiles,
+      )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.loadProducts();
+          this.closeForm();
+        },
+        error: () => this.error.set('No se pudo crear el producto.'),
+      });
   }
 
   protected deleteProduct(product: Product): void {
