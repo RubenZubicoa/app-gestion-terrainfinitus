@@ -26,10 +26,7 @@ export type CategoryTableRow = {
   uuid: string;
   label: string;
   description?: string;
-  type: 'Categoría' | 'Subcategoría';
-  parentLabel?: string;
   category: Category;
-  parentCategory?: Category;
 };
 
 @Component({
@@ -52,26 +49,14 @@ export class Categories implements OnInit {
     category: null,
   });
 
-  protected readonly tableRows = computed(() => this.flattenCategories(this.categories()));
+  protected readonly tableRows = computed(() => this.mapParentCategories(this.categories()));
 
   protected readonly tableColumns = computed<DataTableColumn<CategoryTableRow>[]>(() => [
     {
       key: 'label',
       label: 'Nombre',
       cellClass: 'font-medium text-slate-900',
-      format: (row) => (row.type === 'Subcategoría' ? `↳ ${row.label}` : row.label),
-    },
-    {
-      key: 'type',
-      label: 'Tipo',
-      cellClass: 'text-slate-600',
-      format: (row) => row.type,
-    },
-    {
-      key: 'parentLabel',
-      label: 'Categoría padre',
-      cellClass: 'text-slate-600',
-      format: (row) => row.parentLabel || '—',
+      format: (row) => row.label,
     },
     {
       key: 'description',
@@ -100,19 +85,10 @@ export class Categories implements OnInit {
   }
 
   protected openEditForm(row: CategoryTableRow): void {
-    if (row.type === 'Subcategoría' && row.parentCategory) {
-      this.formContext.set({
-        mode: 'subcategory',
-        category: row.category,
-        parentCategory: row.parentCategory,
-      });
-    } else {
-      this.formContext.set({
-        mode: 'parent',
-        category: row.category,
-      });
-    }
-
+    this.formContext.set({
+      mode: 'parent',
+      category: row.category,
+    });
     this.showForm.set(true);
   }
 
@@ -131,24 +107,9 @@ export class Categories implements OnInit {
   }
 
   protected deleteCategory(row: CategoryTableRow): void {
-    const confirmed = confirm(`¿Eliminar ${row.type.toLowerCase()} "${row.label}"?`);
+    const confirmed = confirm(`¿Eliminar categoría "${row.label}"?`);
 
     if (!confirmed) {
-      return;
-    }
-
-    if (row.type === 'Subcategoría' && row.parentCategory) {
-      const children = (row.parentCategory.children ?? []).filter(
-        (child) => child.uuid !== row.uuid,
-      );
-
-      this.categoryService
-        .updateCategory(row.parentCategory.uuid, { children })
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({
-          next: () => this.loadCategories(),
-          error: () => this.error.set('No se pudo eliminar la subcategoría.'),
-        });
       return;
     }
 
@@ -260,32 +221,13 @@ export class Categories implements OnInit {
     }));
   }
 
-  private flattenCategories(categories: Category[]): CategoryTableRow[] {
-    const rows: CategoryTableRow[] = [];
-
-    for (const category of categories) {
-      rows.push({
-        uuid: category.uuid,
-        label: category.label,
-        description: category.description,
-        type: 'Categoría',
-        category,
-      });
-
-      for (const child of category.children ?? []) {
-        rows.push({
-          uuid: child.uuid,
-          label: child.label,
-          description: child.description,
-          type: 'Subcategoría',
-          parentLabel: category.label,
-          category: child,
-          parentCategory: category,
-        });
-      }
-    }
-
-    return rows;
+  private mapParentCategories(categories: Category[]): CategoryTableRow[] {
+    return categories.map((category) => ({
+      uuid: category.uuid,
+      label: category.label,
+      description: category.description,
+      category,
+    }));
   }
 
   private loadCategories(): void {
