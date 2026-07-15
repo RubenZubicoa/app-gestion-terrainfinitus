@@ -4,6 +4,7 @@ export type NavSectionIcon =
   | 'folder'
   | 'tag'
   | 'cart'
+  | 'chart'
   | 'users'
   | 'calendar'
   | 'document'

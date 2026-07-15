@@ -17,4 +17,8 @@ export const THE_LAKE_ROUTES: Routes = [
     path: 'pedidos',
     loadChildren: () => import('./orders/order.routes').then(m => m.ORDER_ROUTES),
   },
+  {
+    path: 'analisis',
+    loadChildren: () => import('./analytics/analytics.routes').then(m => m.ANALYTICS_ROUTES),
+  },
 ];

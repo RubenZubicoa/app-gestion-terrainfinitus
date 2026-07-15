@@ -1,0 +1,26 @@
+<section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+  <h3 class="text-sm font-semibold text-slate-900">{{ title() }}</h3>
+
+  @if (items().length === 0) {
+    <p class="mt-4 text-sm text-slate-500">{{ emptyMessage() }}</p>
+  } @else {
+    <ul class="mt-4 space-y-3">
+      @for (item of items(); track item.label) {
+        <li>
+          <div class="mb-1 flex items-center justify-between gap-3 text-sm">
+            <span class="truncate font-medium text-slate-700" [title]="item.label">
+              {{ item.label }}
+            </span>
+            <span class="shrink-0 text-slate-600">{{ valueFormatter()(item.value) }}</span>
+          </div>
+          <div class="h-2.5 overflow-hidden rounded-full bg-slate-100">
+            <div
+              class="h-full rounded-full bg-sky-600 transition-all"
+              [style.width.%]="barWidth(item.value)"
+            ></div>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</section>
