@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 
-import { ProjectId } from '../../core/models/the-lake/project';
+import { Project, ProjectId } from '../../core/models/the-lake/project';
 import { ProjectContextService } from '../../core/services/project-context.service';
 
 @Component({
@@ -27,20 +27,20 @@ import { ProjectContextService } from '../../core/services/project-context.servi
       <div class="relative">
         <button
           type="button"
-          class="project-switcher flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition accent-focus"
+          class="project-switcher flex min-w-44 items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition accent-focus"
           [attr.aria-expanded]="projectMenuOpen()"
           aria-haspopup="listbox"
           aria-label="Seleccionar proyecto a gestionar"
           (click)="toggleProjectMenu()"
         >
           <span
-            class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
+            class="inline-flex max-w-full items-center truncate rounded-full px-2 py-0.5 text-xs font-semibold"
             [class]="projectContext.selectedProject().badgeClass"
           >
             {{ projectContext.selectedProject().name }}
           </span>
           <svg
-            class="h-4 w-4 text-slate-500"
+            class="h-4 w-4 shrink-0 text-slate-500"
             viewBox="0 0 20 20"
             fill="currentColor"
             aria-hidden="true"
@@ -55,34 +55,63 @@ import { ProjectContextService } from '../../core/services/project-context.servi
 
         @if (projectMenuOpen()) {
           <div
-            class="absolute right-0 z-50 mt-2 w-72 rounded-xl border p-2 shadow-lg surface-panel"
+            class="absolute right-0 z-50 mt-2 w-80 rounded-xl border p-2 shadow-lg surface-panel"
             role="listbox"
             aria-label="Proyectos disponibles"
           >
-            <p class="px-2 py-1 text-xs font-medium uppercase tracking-wide text-slate-500">
-              Proyecto activo
+            <p class="px-3 py-2 text-xs font-medium uppercase tracking-wide text-slate-500">
+              Seleccionar proyecto
             </p>
-            @for (project of projectContext.projects; track project.id) {
-              <button
-                type="button"
-                role="option"
-                class="flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left transition accent-focus hover:bg-[var(--accent-muted)]"
-                [style.background-color]="projectContext.selectedProject().id === project.id ? 'var(--accent-light)' : null"
-                [attr.aria-selected]="projectContext.selectedProject().id === project.id"
-                (click)="selectProject(project.id)"
-              >
-                <span
-                  class="mt-0.5 inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-semibold"
-                  [class]="project.badgeClass"
-                >
-                  {{ project.shortLabel }}
-                </span>
-                <span class="min-w-0">
-                  <span class="block text-sm font-semibold text-slate-900">{{ project.name }}</span>
-                  <span class="block text-xs text-slate-500">{{ project.description }}</span>
-                </span>
-              </button>
-            }
+
+            <ul class="space-y-1">
+              @for (project of projectContext.projects; track project.id) {
+                <li>
+                  <button
+                    type="button"
+                    role="option"
+                    class="project-menu-item flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left transition accent-focus"
+                    [class.project-menu-item-active]="
+                      projectContext.selectedProject().id === project.id
+                    "
+                    [attr.aria-selected]="projectContext.selectedProject().id === project.id"
+                    (click)="selectProject(project.id)"
+                  >
+                    <span
+                      class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white"
+                      [class]="project.badgeClass"
+                    >
+                      {{ projectInitials(project) }}
+                    </span>
+
+                    <span class="min-w-0 flex-1">
+                      <span class="block truncate text-sm font-semibold text-slate-900">
+                        {{ project.name }}
+                      </span>
+                      <span class="block truncate text-xs text-slate-500">
+                        {{ project.description }}
+                      </span>
+                    </span>
+
+                    <span class="flex h-5 w-5 shrink-0 items-center justify-center">
+                      @if (projectContext.selectedProject().id === project.id) {
+                        <svg
+                          class="h-5 w-5 text-[var(--accent)]"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                          aria-hidden="true"
+                        >
+                          <path
+                            fill-rule="evenodd"
+                            d="M16.704 5.29a1 1 0 010 1.42l-7.25 7.25a1 1 0 01-1.42 0l-3.25-3.25a1 1 0 111.42-1.42l2.54 2.54 6.54-6.54a1 1 0 011.42 0z"
+                            clip-rule="evenodd"
+                          />
+                        </svg>
+                      }
+                    </span>
+                  </button>
+                </li>
+              }
+            </ul>
           </div>
         }
       </div>
@@ -100,5 +129,15 @@ export class HeaderComponent {
   selectProject(projectId: ProjectId): void {
     this.projectContext.selectProject(projectId);
     this.projectMenuOpen.set(false);
+  }
+
+  protected projectInitials(project: Project): string {
+    const words = project.shortLabel.trim().split(/\s+/);
+
+    if (words.length >= 2) {
+      return `${words[0][0] ?? ''}${words[1][0] ?? ''}`.toUpperCase();
+    }
+
+    return project.shortLabel.slice(0, 2).toUpperCase();
   }
 }

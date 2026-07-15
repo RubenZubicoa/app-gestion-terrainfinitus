@@ -1,4 +1,5 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 
 import { DEFAULT_PROJECT_ID, PROJECTS } from '../constants/projects';
 import { ProjectId, Project } from '../models/the-lake/project';
@@ -7,6 +8,8 @@ const STORAGE_KEY = 'selected-project-id';
 
 @Injectable({ providedIn: 'root' })
 export class ProjectContextService {
+  private readonly router = inject(Router);
+
   readonly projects = PROJECTS;
 
   private readonly selectedProjectId = signal<ProjectId>(this.readStoredProjectId());
@@ -23,8 +26,15 @@ export class ProjectContextService {
       return;
     }
 
+    const previousId = this.selectedProjectId();
+
+    if (previousId === projectId) {
+      return;
+    }
+
     this.selectedProjectId.set(projectId);
     localStorage.setItem(STORAGE_KEY, projectId);
+    void this.router.navigate(['/dashboard']);
   }
 
   private readStoredProjectId(): ProjectId {
