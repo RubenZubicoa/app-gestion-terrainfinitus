@@ -6,12 +6,12 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule],
   template: `
-    <div class="flex min-h-dvh flex-col bg-slate-50">
+    <div class="flex min-h-dvh flex-col bg-gradient-to-br from-sky-100 via-blue-50 to-emerald-100">
       <main class="flex flex-1 items-center justify-center px-4 py-12">
         <div class="w-full max-w-md">
           <div class="mb-8 text-center">
             <div
-              class="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-slate-900 text-base font-bold text-white"
+              class="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-emerald-600 text-base font-bold text-white shadow-md"
               aria-hidden="true"
             >
               BO
@@ -23,7 +23,7 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
           </div>
 
           <form
-            class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+            class="rounded-2xl border p-6 shadow-sm surface-panel"
             [formGroup]="loginForm"
             (submit)="onSubmit($event)"
             aria-label="Formulario de inicio de sesión"
@@ -58,17 +58,14 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
               </div>
             </div>
 
-            <button
-              type="submit"
-              class="mt-6 w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
-            >
+            <button type="submit" class="btn-primary mt-6 w-full py-2.5">
               Entrar
             </button>
           </form>
         </div>
       </main>
 
-      <footer class="shrink-0 border-t border-slate-200 bg-white px-4 py-3 text-center text-xs text-slate-500">
+      <footer class="app-footer shrink-0 px-4 py-3 text-center text-xs text-slate-600">
         &copy; {{ currentYear }} Terrainfinitus · Back Office
       </footer>
     </div>

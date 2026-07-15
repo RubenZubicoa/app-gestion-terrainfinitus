@@ -1,10 +1,12 @@
 <section class="mx-auto max-w-7xl">
-  <div>
-    <h1 class="text-2xl font-semibold text-slate-900">Análisis</h1>
-    <p class="mt-1 text-sm text-slate-600">
-      Resumen visual de ventas basado en los pedidos de THE LAKE. Los pedidos cancelados no
-      cuentan en ingresos ni unidades vendidas.
-    </p>
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Análisis</h1>
+      <p class="page-subtitle">
+        Resumen visual de ventas basado en los pedidos de THE LAKE. Los pedidos cancelados no
+        cuentan en ingresos ni unidades vendidas.
+      </p>
+    </div>
   </div>
 
   @if (error()) {
@@ -21,9 +23,9 @@
   } @else if (analytics()) {
     <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       @for (card of summaryCards(); track card.label) {
-        <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p class="text-sm text-slate-600">{{ card.label }}</p>
-          <p class="mt-2 text-2xl font-semibold text-slate-900">{{ card.value }}</p>
+        <article class="stat-card">
+          <p class="stat-card-label">{{ card.label }}</p>
+          <p class="stat-card-value">{{ card.value }}</p>
         </article>
       }
     </div>
