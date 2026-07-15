@@ -6,6 +6,9 @@ import { ProjectContextService } from '../../core/services/project-context.servi
 @Component({
   selector: 'app-header',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    class: 'block shrink-0',
+  },
   template: `
     <header class="app-header flex h-16 shrink-0 items-center justify-between gap-4 px-4 lg:px-6">
       <div class="flex min-w-0 items-center gap-3">

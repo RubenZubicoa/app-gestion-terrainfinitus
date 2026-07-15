@@ -7,6 +7,9 @@ import { NavSectionIcon } from '../../core/models/the-lake/nav-section';
 @Component({
   selector: 'app-sidenav',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    class: 'block h-full shrink-0 overflow-y-auto',
+  },
   imports: [RouterLink, RouterLinkActive],
   templateUrl: './sidenav.component.html',
 })

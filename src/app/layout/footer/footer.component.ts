@@ -3,6 +3,9 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 @Component({
   selector: 'app-footer',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    class: 'block shrink-0',
+  },
   template: `
     <footer class="app-footer shrink-0 px-4 py-3 lg:px-6">
       <div class="flex flex-col gap-1 text-xs text-slate-600 sm:flex-row sm:items-center sm:justify-between">
