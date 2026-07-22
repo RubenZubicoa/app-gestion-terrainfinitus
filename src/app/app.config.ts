@@ -8,7 +8,8 @@ import { tokenInterceptor } from './core/interceptors/token.interceptor';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideHttpClient(withInterceptors([tokenInterceptor])),
+    // provideHttpClient(withInterceptors([tokenInterceptor])),
+    provideHttpClient(),
     provideRouter(routes),
   ],
 };
