@@ -1,5 +1,15 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  inject,
+  signal,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -39,8 +49,12 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
                   formControlName="email"
                   autocomplete="email"
                   placeholder="tu@email.com"
-                  class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+                  class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500"
+                  [attr.aria-invalid]="emailInvalid"
                 />
+                @if (emailInvalid) {
+                  <p class="mt-1.5 text-xs text-red-600">Introduce un correo válido.</p>
+                }
               </div>
 
               <div>
@@ -53,13 +67,30 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
                   formControlName="password"
                   autocomplete="current-password"
                   placeholder="Introduce tu contraseña"
-                  class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+                  class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500"
+                  [attr.aria-invalid]="passwordInvalid"
                 />
+                @if (passwordInvalid) {
+                  <p class="mt-1.5 text-xs text-red-600">La contraseña es obligatoria.</p>
+                }
               </div>
             </div>
 
-            <button type="submit" class="btn-primary mt-6 w-full py-2.5">
-              Entrar
+            @if (error()) {
+              <div
+                class="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+                role="alert"
+              >
+                {{ error() }}
+              </div>
+            }
+
+            <button
+              type="submit"
+              class="btn-primary mt-6 w-full py-2.5 disabled:cursor-not-allowed disabled:opacity-60"
+              [disabled]="loading()"
+            >
+              {{ loading() ? 'Entrando...' : 'Entrar' }}
             </button>
           </form>
         </div>
@@ -72,14 +103,59 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
   `,
 })
 export class LoginComponent {
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+
   protected readonly currentYear = new Date().getFullYear();
+  protected readonly loading = signal(false);
+  protected readonly error = signal<string | null>(null);
 
   protected readonly loginForm = new FormGroup({
-    email: new FormControl(''),
-    password: new FormControl(''),
+    email: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.email],
+    }),
+    password: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
   });
+
+  protected get emailInvalid(): boolean {
+    const control = this.loginForm.controls.email;
+    return control.invalid && control.touched;
+  }
+
+  protected get passwordInvalid(): boolean {
+    const control = this.loginForm.controls.password;
+    return control.invalid && control.touched;
+  }
 
   protected onSubmit(event: Event): void {
     event.preventDefault();
+    this.error.set(null);
+
+    if (this.loginForm.invalid) {
+      this.loginForm.markAllAsTouched();
+      return;
+    }
+
+    const { email, password } = this.loginForm.getRawValue();
+    this.loading.set(true);
+
+    this.authService
+      .login(email, password)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.loading.set(false);
+          void this.router.navigateByUrl('/dashboard');
+        },
+        error: () => {
+          this.loading.set(false);
+          this.error.set('Credenciales incorrectas o error de conexión. Inténtalo de nuevo.');
+        },
+      });
   }
 }

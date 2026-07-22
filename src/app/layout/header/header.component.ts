@@ -1,6 +1,9 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 
 import { Project, ProjectId } from '../../core/models/the-lake/project';
+import { AuthService } from '../../core/services/auth.service';
+import { CurrentUserService } from '../../core/services/current-user.service';
 import { ProjectContextService } from '../../core/services/project-context.service';
 
 @Component({
@@ -20,10 +23,13 @@ import { ProjectContextService } from '../../core/services/project-context.servi
         </div>
         <div class="min-w-0">
           <p class="truncate text-sm font-semibold text-slate-900">Back Office</p>
-          <p class="truncate text-xs text-slate-500">Gestión centralizada</p>
+          <p class="truncate text-xs text-slate-500">
+            {{ currentUser.displayName() || 'Gestión centralizada' }}
+          </p>
         </div>
       </div>
 
+      <div class="flex items-center gap-2">
       <div class="relative">
         <button
           type="button"
@@ -115,11 +121,24 @@ import { ProjectContextService } from '../../core/services/project-context.servi
           </div>
         }
       </div>
+
+        <button
+          type="button"
+          class="btn-secondary px-3 py-2 text-sm"
+          (click)="logout()"
+        >
+          Cerrar sesión
+        </button>
+      </div>
     </header>
   `,
 })
 export class HeaderComponent {
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+
   protected readonly projectContext = inject(ProjectContextService);
+  protected readonly currentUser = inject(CurrentUserService);
   protected readonly projectMenuOpen = signal(false);
 
   toggleProjectMenu(): void {
@@ -129,6 +148,11 @@ export class HeaderComponent {
   selectProject(projectId: ProjectId): void {
     this.projectContext.selectProject(projectId);
     this.projectMenuOpen.set(false);
+  }
+
+  logout(): void {
+    this.authService.logout();
+    void this.router.navigateByUrl('/login');
   }
 
   protected projectInitials(project: Project): string {
