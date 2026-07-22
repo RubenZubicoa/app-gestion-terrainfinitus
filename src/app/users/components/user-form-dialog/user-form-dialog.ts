@@ -4,9 +4,16 @@ import {
   effect,
   input,
   output,
+  signal,
   untracked,
 } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 
 import {
   USER_ROLE_LABELS,
@@ -44,6 +51,7 @@ export class UserFormDialog {
 
   protected readonly roleOptions = USER_ROLE_OPTIONS;
   protected readonly roleLabels = USER_ROLE_LABELS;
+  protected readonly showValidationSummary = signal(false);
 
   protected readonly form = new FormGroup({
     name: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -67,6 +75,7 @@ export class UserFormDialog {
 
       untracked(() => {
         const passwordControl = this.form.controls.password;
+        this.showValidationSummary.set(false);
 
         if (user) {
           passwordControl.clearValidators();
@@ -103,13 +112,38 @@ export class UserFormDialog {
     return this.user() !== null;
   }
 
+  protected fieldError(controlName: keyof typeof this.form.controls): string | null {
+    const control = this.form.controls[controlName];
+
+    if (!control || !this.shouldShowError(control)) {
+      return null;
+    }
+
+    if (control.hasError('required')) {
+      return 'Este campo es obligatorio.';
+    }
+
+    if (controlName === 'email' && control.hasError('email')) {
+      return 'Introduce un correo electrónico válido.';
+    }
+
+    if (controlName === 'password' && control.hasError('minlength')) {
+      return 'La contraseña debe tener al menos 6 caracteres.';
+    }
+
+    return 'Revisa este campo.';
+  }
+
   protected onSubmit(event: Event): void {
     event.preventDefault();
 
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      this.showValidationSummary.set(true);
       return;
     }
+
+    this.showValidationSummary.set(false);
 
     const { name, lastName, email, phone, address, password, role } = this.form.getRawValue();
     const user = this.user();
@@ -130,6 +164,10 @@ export class UserFormDialog {
 
   protected onCancel(): void {
     this.cancelled.emit();
+  }
+
+  private shouldShowError(control: AbstractControl): boolean {
+    return control.invalid && (control.touched || this.showValidationSummary());
   }
 
   private resolveRole(role: string): UserRole {

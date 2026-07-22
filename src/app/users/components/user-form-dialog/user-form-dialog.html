@@ -15,6 +15,15 @@
     </p>
 
     <form class="mt-4 space-y-4" [formGroup]="form" (submit)="onSubmit($event)">
+      @if (showValidationSummary()) {
+        <div
+          class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900"
+          role="alert"
+        >
+          Revisa el formulario: hay campos obligatorios sin completar o con un formato incorrecto.
+        </div>
+      }
+
       <div class="grid gap-4 sm:grid-cols-2">
         <div>
           <label for="user-name" class="block text-sm font-medium text-slate-700">Nombre</label>
@@ -23,7 +32,12 @@
             type="text"
             formControlName="name"
             class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+            [class.border-red-400]="fieldError('name')"
+            [attr.aria-invalid]="!!fieldError('name')"
           />
+          @if (fieldError('name'); as error) {
+            <p class="mt-1.5 text-xs text-red-600">{{ error }}</p>
+          }
         </div>
 
         <div>
@@ -35,7 +49,12 @@
             type="text"
             formControlName="lastName"
             class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+            [class.border-red-400]="fieldError('lastName')"
+            [attr.aria-invalid]="!!fieldError('lastName')"
           />
+          @if (fieldError('lastName'); as error) {
+            <p class="mt-1.5 text-xs text-red-600">{{ error }}</p>
+          }
         </div>
       </div>
 
@@ -47,7 +66,12 @@
           formControlName="email"
           autocomplete="email"
           class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+          [class.border-red-400]="fieldError('email')"
+          [attr.aria-invalid]="!!fieldError('email')"
         />
+        @if (fieldError('email'); as error) {
+          <p class="mt-1.5 text-xs text-red-600">{{ error }}</p>
+        }
       </div>
 
       <div class="grid gap-4 sm:grid-cols-2">
@@ -58,7 +82,12 @@
             type="tel"
             formControlName="phone"
             class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+            [class.border-red-400]="fieldError('phone')"
+            [attr.aria-invalid]="!!fieldError('phone')"
           />
+          @if (fieldError('phone'); as error) {
+            <p class="mt-1.5 text-xs text-red-600">{{ error }}</p>
+          }
         </div>
 
         <div>
@@ -67,11 +96,16 @@
             id="user-role"
             formControlName="role"
             class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+            [class.border-red-400]="fieldError('role')"
+            [attr.aria-invalid]="!!fieldError('role')"
           >
             @for (role of roleOptions; track role) {
               <option [value]="role">{{ roleLabels[role] }}</option>
             }
           </select>
+          @if (fieldError('role'); as error) {
+            <p class="mt-1.5 text-xs text-red-600">{{ error }}</p>
+          }
         </div>
       </div>
 
@@ -82,7 +116,12 @@
           type="text"
           formControlName="address"
           class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+          [class.border-red-400]="fieldError('address')"
+          [attr.aria-invalid]="!!fieldError('address')"
         />
+        @if (fieldError('address'); as error) {
+          <p class="mt-1.5 text-xs text-red-600">{{ error }}</p>
+        }
       </div>
 
       <div>
@@ -99,7 +138,12 @@
           autocomplete="new-password"
           [placeholder]="isEditing ? 'La contraseña no se modifica al editar' : 'Mínimo 6 caracteres'"
           class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500"
+          [class.border-red-400]="fieldError('password')"
+          [attr.aria-invalid]="!!fieldError('password')"
         />
+        @if (fieldError('password'); as error) {
+          <p class="mt-1.5 text-xs text-red-600">{{ error }}</p>
+        }
       </div>
 
       <div class="flex justify-end gap-3 pt-2">
