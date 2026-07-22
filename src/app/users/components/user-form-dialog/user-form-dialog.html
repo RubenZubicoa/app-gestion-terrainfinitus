@@ -1,0 +1,115 @@
+<div
+  class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4"
+  role="dialog"
+  aria-modal="true"
+  [attr.aria-label]="isEditing ? 'Editar usuario' : 'Agregar usuario'"
+>
+  <div
+    class="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-slate-200 bg-white p-6 shadow-xl"
+  >
+    <h2 class="text-lg font-semibold text-slate-900">
+      {{ isEditing ? 'Editar usuario' : 'Agregar usuario' }}
+    </h2>
+    <p class="mt-1 text-sm text-slate-600">
+      Los usuarios son compartidos entre todos los proyectos.
+    </p>
+
+    <form class="mt-4 space-y-4" [formGroup]="form" (submit)="onSubmit($event)">
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label for="user-name" class="block text-sm font-medium text-slate-700">Nombre</label>
+          <input
+            id="user-name"
+            type="text"
+            formControlName="name"
+            class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+          />
+        </div>
+
+        <div>
+          <label for="user-last-name" class="block text-sm font-medium text-slate-700">
+            Apellidos
+          </label>
+          <input
+            id="user-last-name"
+            type="text"
+            formControlName="lastName"
+            class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label for="user-email" class="block text-sm font-medium text-slate-700">Email</label>
+        <input
+          id="user-email"
+          type="email"
+          formControlName="email"
+          autocomplete="email"
+          class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+        />
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label for="user-phone" class="block text-sm font-medium text-slate-700">Teléfono</label>
+          <input
+            id="user-phone"
+            type="tel"
+            formControlName="phone"
+            class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+          />
+        </div>
+
+        <div>
+          <label for="user-role" class="block text-sm font-medium text-slate-700">Rol</label>
+          <select
+            id="user-role"
+            formControlName="role"
+            class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+          >
+            @for (role of roleOptions; track role) {
+              <option [value]="role">{{ roleLabels[role] }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label for="user-address" class="block text-sm font-medium text-slate-700">Dirección</label>
+        <input
+          id="user-address"
+          type="text"
+          formControlName="address"
+          class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+        />
+      </div>
+
+      <div>
+        <label for="user-password" class="block text-sm font-medium text-slate-700">
+          Contraseña
+          @if (isEditing) {
+            <span class="font-normal text-slate-500">(no editable aquí)</span>
+          }
+        </label>
+        <input
+          id="user-password"
+          type="password"
+          formControlName="password"
+          autocomplete="new-password"
+          [placeholder]="isEditing ? 'La contraseña no se modifica al editar' : 'Mínimo 6 caracteres'"
+          class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500"
+        />
+      </div>
+
+      <div class="flex justify-end gap-3 pt-2">
+        <button type="button" (click)="onCancel()" class="btn-secondary px-4 py-2">
+          Cancelar
+        </button>
+        <button type="submit" class="btn-primary px-4 py-2">
+          {{ isEditing ? 'Guardar cambios' : 'Agregar usuario' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

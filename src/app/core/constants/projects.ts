@@ -31,7 +31,6 @@ export const PROJECTS: readonly Project[] = [
       { id: 'categorias', label: 'Categorías', path: '/categorias', icon: 'folder' },
       { id: 'marcas', label: 'Marcas', path: '/marcas', icon: 'tag' },
       { id: 'pedidos', label: 'Pedidos', path: '/pedidos', icon: 'cart' },
-      { id: 'usuarios', label: 'Usuarios', path: '/usuarios', icon: 'users' },
     ],
   },
 ] as const;

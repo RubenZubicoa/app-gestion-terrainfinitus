@@ -20,5 +20,10 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadChildren: () => import('./the-lake/the-lake.routes').then((m) => m.THE_LAKE_ROUTES),
   },
+  {
+    path: 'usuarios',
+    canActivate: [authGuard],
+    loadChildren: () => import('./users/user.routes').then((m) => m.USER_ROUTES),
+  },
   { path: '**', redirectTo: 'dashboard' },
 ];

@@ -33,6 +33,9 @@ export class DataTableComponent<T> {
 
   readonly edit = output<T>();
   readonly delete = output<T>();
+  readonly changePassword = output<T>();
+
+  readonly showChangePassword = input(false);
 
   protected readonly currentPage = signal(1);
 
@@ -97,6 +100,10 @@ export class DataTableComponent<T> {
 
   protected onEdit(row: T): void {
     this.edit.emit(row);
+  }
+
+  protected onChangePassword(row: T): void {
+    this.changePassword.emit(row);
   }
 
   protected onDelete(row: T): void {
