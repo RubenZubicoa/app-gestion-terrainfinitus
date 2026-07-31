@@ -20,6 +20,9 @@ export type ProductDB = {
     categoryId: CategoryDB['_id'];
     images: string[];
     options?: ProductOption;
+    isFeatured?: boolean | string;
+    isInOffer?: boolean | string | null;
+    offerPrice?: number | string | null;
     createdAt?: number;
     updatedAt?: number;
     isDeleted?: boolean;
@@ -35,6 +38,9 @@ export interface Product {
     categoryId: Category['uuid'];
     images: string[];
     options?: ProductOption;
+    isFeatured: boolean;
+    isInOffer?: boolean;
+    offerPrice?: number;
 }
 
 export interface ProductCreate {
@@ -45,6 +51,9 @@ export interface ProductCreate {
     stock: number;
     categoryId: Category['uuid'];
     options?: ProductOption[];
+    isFeatured: boolean;
+    isInOffer?: boolean;
+    offerPrice?: number;
 }
 
 export interface ProductUpdate {
@@ -56,13 +65,37 @@ export interface ProductUpdate {
     categoryId?: string;
     existingImages?: string[];
     options?: ProductOption;
+    isFeatured?: boolean;
+    isInOffer?: boolean | null;
+    offerPrice?: number | null;
 }
 
 export type ProductWithQuantity = Product & {
     quantity: number;
 }
 
+function mapOfferFlag(value: unknown): boolean | undefined {
+    if (value === true || value === 'true' || value === 1 || value === '1') {
+        return true;
+    }
+
+    return undefined;
+}
+
+function mapOfferPrice(value: unknown): number | undefined {
+    if (value === null || value === undefined || value === '' || value === 'null') {
+        return undefined;
+    }
+
+    const price = Number(value);
+    return Number.isFinite(price) ? price : undefined;
+}
+
 export function mapProductDBToProduct(productDB: ProductDB): Product {
+    const offerPrice = mapOfferPrice(productDB.offerPrice);
+    const isInOffer =
+        mapOfferFlag(productDB.isInOffer) === true || offerPrice !== undefined ? true : undefined;
+
     return {
         uuid: productDB._id,
         brandId: productDB.brandId,
@@ -73,5 +106,7 @@ export function mapProductDBToProduct(productDB: ProductDB): Product {
         categoryId: productDB.categoryId,
         images: productDB.images,
         options: productDB.options,
+        isFeatured: productDB.isFeatured === true || productDB.isFeatured === 'true',
+        ...(isInOffer === true ? { isInOffer: true, offerPrice } : {}),
     }
 }

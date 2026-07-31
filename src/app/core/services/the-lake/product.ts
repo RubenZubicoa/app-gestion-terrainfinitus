@@ -39,6 +39,16 @@ export class ProductService {
     formData.append('stock', product.stock.toString());
     formData.append('brandId', product.brandId);
     formData.append('categoryId', product.categoryId);
+    formData.append('isFeatured', String(product.isFeatured));
+
+    if (product.isInOffer === true) {
+      formData.append('isInOffer', 'true');
+    }
+
+    if (product.offerPrice !== undefined) {
+      formData.append('offerPrice', product.offerPrice.toString());
+    }
+
     for (const image of images) {
       formData.append('images', image);
     }
@@ -70,6 +80,22 @@ export class ProductService {
 
     if (product.categoryId !== undefined && product.categoryId !== '') {
       formData.append('categoryId', product.categoryId);
+    }
+
+    if (product.isFeatured !== undefined) {
+      formData.append('isFeatured', String(product.isFeatured));
+    }
+
+    if (product.isInOffer === true) {
+      formData.append('isInOffer', 'true');
+    } else if (product.isInOffer === null) {
+      formData.append('isInOffer', 'null');
+    }
+
+    if (product.offerPrice != null) {
+      formData.append('offerPrice', product.offerPrice.toString());
+    } else if (product.offerPrice === null) {
+      formData.append('offerPrice', 'null');
     }
 
     const existingImages = product.existingImages ?? [];

@@ -93,6 +93,19 @@ export class Products implements OnInit {
         format: (product) => formatEuro(product.price),
       },
       {
+        key: 'offer',
+        label: 'Oferta',
+        cellClass: 'text-slate-600',
+        format: (product) =>
+          product.offerPrice != null ? formatEuro(product.offerPrice) : '—',
+      },
+      {
+        key: 'featured',
+        label: 'Destacado',
+        cellClass: 'text-slate-600',
+        format: (product) => (product.isFeatured ? 'Sí' : 'No'),
+      },
+      {
         key: 'stock',
         label: 'Stock',
         format: (product) => product.stock,
@@ -149,6 +162,16 @@ export class Products implements OnInit {
             stock: payload.values.stock,
             brandId: payload.values.brandId,
             categoryId: payload.values.categoryId,
+            isFeatured: payload.values.isFeatured,
+            ...(payload.values.isInOffer === true
+              ? {
+                  isInOffer: true as const,
+                  offerPrice: payload.values.offerPrice,
+                }
+              : {
+                  isInOffer: null,
+                  offerPrice: null,
+                }),
             existingImages: payload.existingImageUrls,
           },
           payload.imageFiles,
@@ -173,6 +196,13 @@ export class Products implements OnInit {
           stock: payload.values.stock,
           brandId: payload.values.brandId,
           categoryId: payload.values.categoryId,
+          isFeatured: payload.values.isFeatured,
+          ...(payload.values.isInOffer === true
+            ? {
+                isInOffer: true,
+                offerPrice: payload.values.offerPrice,
+              }
+            : {}),
         },
         payload.imageFiles,
       )
