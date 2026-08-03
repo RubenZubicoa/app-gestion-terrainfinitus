@@ -16,6 +16,7 @@ export type ProductDB = {
     name: string;
     description?: string;
     price: number;
+    professionalPrice?: number | string | null;
     stock: number;
     categoryId: CategoryDB['_id'];
     images: string[];
@@ -34,6 +35,7 @@ export interface Product {
     name: string;
     description?: string;
     price: number;
+    professionalPrice?: number;
     stock: number;
     categoryId: Category['uuid'];
     images: string[];
@@ -48,6 +50,7 @@ export interface ProductCreate {
     name: string;
     description?: string;
     price: number;
+    professionalPrice?: number;
     stock: number;
     categoryId: Category['uuid'];
     options?: ProductOption[];
@@ -61,6 +64,7 @@ export interface ProductUpdate {
     name?: string;
     description?: string;
     price?: number;
+    professionalPrice?: number | null;
     stock?: number;
     categoryId?: string;
     existingImages?: string[];
@@ -93,6 +97,7 @@ function mapOfferPrice(value: unknown): number | undefined {
 
 export function mapProductDBToProduct(productDB: ProductDB): Product {
     const offerPrice = mapOfferPrice(productDB.offerPrice);
+    const professionalPrice = mapOfferPrice(productDB.professionalPrice);
     const isInOffer =
         mapOfferFlag(productDB.isInOffer) === true || offerPrice !== undefined ? true : undefined;
 
@@ -107,6 +112,7 @@ export function mapProductDBToProduct(productDB: ProductDB): Product {
         images: productDB.images,
         options: productDB.options,
         isFeatured: productDB.isFeatured === true || productDB.isFeatured === 'true',
+        ...(professionalPrice !== undefined ? { professionalPrice } : {}),
         ...(isInOffer === true ? { isInOffer: true, offerPrice } : {}),
     }
 }

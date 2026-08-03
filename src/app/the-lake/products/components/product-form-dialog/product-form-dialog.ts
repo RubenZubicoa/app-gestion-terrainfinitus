@@ -27,6 +27,7 @@ export type ProductFormValues = {
   name: string;
   description?: string;
   price: number;
+  professionalPrice?: number;
   stock: number;
   brandId: string;
   categoryId: string;
@@ -79,6 +80,9 @@ export class ProductFormDialog implements OnDestroy {
     description: new FormControl('', { nonNullable: true }),
     price: new FormControl<number | null>(null, {
       validators: [Validators.required, Validators.min(0)],
+    }),
+    professionalPrice: new FormControl<number | null>(null, {
+      validators: [Validators.min(0)],
     }),
     stock: new FormControl<number | null>(null, {
       validators: [Validators.required, Validators.min(0)],
@@ -138,6 +142,8 @@ export class ProductFormDialog implements OnDestroy {
               name: product.name,
               description: product.description ?? '',
               price: Number(product.price),
+              professionalPrice:
+                product.professionalPrice != null ? Number(product.professionalPrice) : null,
               stock: Number(product.stock),
               brandId: product.brandId,
               parentCategoryId: categorySelection.parentCategoryId,
@@ -174,6 +180,7 @@ export class ProductFormDialog implements OnDestroy {
             name: '',
             description: '',
             price: null,
+            professionalPrice: null,
             stock: null,
             brandId: '',
             parentCategoryId: '',
@@ -288,6 +295,7 @@ export class ProductFormDialog implements OnDestroy {
       name,
       description,
       price,
+      professionalPrice,
       stock,
       brandId,
       parentCategoryId,
@@ -309,6 +317,7 @@ export class ProductFormDialog implements OnDestroy {
         brandId,
         categoryId,
         isFeatured: Boolean(isFeatured),
+        ...(professionalPrice != null ? { professionalPrice: Number(professionalPrice) } : {}),
         ...(isInOffer && offerPrice != null
           ? { isInOffer: true as const, offerPrice: Number(offerPrice) }
           : {}),

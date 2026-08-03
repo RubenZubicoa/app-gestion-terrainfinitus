@@ -93,6 +93,13 @@ export class Products implements OnInit {
         format: (product) => formatEuro(product.price),
       },
       {
+        key: 'professionalPrice',
+        label: 'Precio profesional',
+        cellClass: 'text-slate-600',
+        format: (product) =>
+          product.professionalPrice != null ? formatEuro(product.professionalPrice) : '—',
+      },
+      {
         key: 'offer',
         label: 'Oferta',
         cellClass: 'text-slate-600',
@@ -163,6 +170,10 @@ export class Products implements OnInit {
             brandId: payload.values.brandId,
             categoryId: payload.values.categoryId,
             isFeatured: payload.values.isFeatured,
+            professionalPrice:
+              payload.values.professionalPrice != null
+                ? payload.values.professionalPrice
+                : null,
             ...(payload.values.isInOffer === true
               ? {
                   isInOffer: true as const,
@@ -197,6 +208,9 @@ export class Products implements OnInit {
           brandId: payload.values.brandId,
           categoryId: payload.values.categoryId,
           isFeatured: payload.values.isFeatured,
+          ...(payload.values.professionalPrice != null
+            ? { professionalPrice: payload.values.professionalPrice }
+            : {}),
           ...(payload.values.isInOffer === true
             ? {
                 isInOffer: true,

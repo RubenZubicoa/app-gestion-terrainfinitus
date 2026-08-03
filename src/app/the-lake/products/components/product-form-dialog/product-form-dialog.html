@@ -63,19 +63,37 @@
         </div>
 
         <div>
-          <label for="product-stock" class="block text-sm font-medium text-slate-700">Stock</label>
+          <label for="product-professional-price" class="block text-sm font-medium text-slate-700">
+            Precio profesional
+          </label>
           <input
-            id="product-stock"
+            id="product-professional-price"
             type="number"
             min="0"
-            formControlName="stock"
+            step="0.01"
+            formControlName="professionalPrice"
             class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
-            [class.border-red-400]="fieldError('stock')"
+            [class.border-red-400]="fieldError('professionalPrice')"
           />
-          @if (fieldError('stock'); as error) {
+          @if (fieldError('professionalPrice'); as error) {
             <p class="mt-1.5 text-xs text-red-600">{{ error }}</p>
           }
         </div>
+      </div>
+
+      <div>
+        <label for="product-stock" class="block text-sm font-medium text-slate-700">Stock</label>
+        <input
+          id="product-stock"
+          type="number"
+          min="0"
+          formControlName="stock"
+          class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+          [class.border-red-400]="fieldError('stock')"
+        />
+        @if (fieldError('stock'); as error) {
+          <p class="mt-1.5 text-xs text-red-600">{{ error }}</p>
+        }
       </div>
 
       <div class="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-3">

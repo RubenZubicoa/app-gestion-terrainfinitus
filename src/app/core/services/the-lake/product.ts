@@ -41,6 +41,10 @@ export class ProductService {
     formData.append('categoryId', product.categoryId);
     formData.append('isFeatured', String(product.isFeatured));
 
+    if (product.professionalPrice !== undefined) {
+      formData.append('professionalPrice', product.professionalPrice.toString());
+    }
+
     if (product.isInOffer === true) {
       formData.append('isInOffer', 'true');
     }
@@ -68,6 +72,12 @@ export class ProductService {
 
     if (product.price !== undefined) {
       formData.append('price', product.price.toString());
+    }
+
+    if (product.professionalPrice != null) {
+      formData.append('professionalPrice', product.professionalPrice.toString());
+    } else if (product.professionalPrice === null) {
+      formData.append('professionalPrice', 'null');
     }
 
     if (product.stock !== undefined) {
