@@ -27,7 +27,12 @@ export const PROJECTS: readonly Project[] = [
     sections: [
       { id: 'dashboard', label: 'Inicio', path: '/dashboard', icon: 'home' },
       { id: 'reservas', label: 'Reservas', path: '/reservas', icon: 'calendar' },
-      { id: 'productos', label: 'Productos', path: '/productos', icon: 'box' },
+      {
+        id: 'productos-gourmet',
+        label: 'Productos gourmet',
+        path: '/terrainfinitus/productos-gourmet',
+        icon: 'box',
+      },
       { id: 'categorias', label: 'Categorías', path: '/categorias', icon: 'folder' },
       { id: 'marcas', label: 'Marcas', path: '/marcas', icon: 'tag' },
       { id: 'pedidos', label: 'Pedidos', path: '/pedidos', icon: 'cart' },

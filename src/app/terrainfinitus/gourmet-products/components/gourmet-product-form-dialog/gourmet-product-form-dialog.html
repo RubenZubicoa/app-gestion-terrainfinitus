@@ -1,0 +1,302 @@
+<div
+  class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4"
+  role="dialog"
+  aria-modal="true"
+  [attr.aria-label]="isEditing ? 'Editar producto gourmet' : 'Agregar producto gourmet'"
+>
+  <div
+    class="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-slate-200 bg-white p-6 shadow-xl"
+  >
+    <h2 class="text-lg font-semibold text-slate-900">
+      {{ isEditing ? 'Editar producto gourmet' : 'Agregar producto gourmet' }}
+    </h2>
+
+    <form class="mt-4 space-y-4" [formGroup]="form" (submit)="onSubmit($event)">
+      @if (showValidationSummary()) {
+        <div
+          class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900"
+          role="alert"
+        >
+          Revisa el formulario: hay campos obligatorios sin completar o con un formato incorrecto.
+        </div>
+      }
+
+      <div class="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+        <div class="flex flex-wrap items-end justify-between gap-3">
+          <p class="text-sm font-semibold text-slate-900">Traducciones</p>
+          <div>
+            <label for="gourmet-locale" class="mb-1 block text-xs font-medium text-slate-600">
+              Idioma
+            </label>
+            <select
+              id="gourmet-locale"
+              [value]="selectedLocale()"
+              (change)="onLocaleChange($event)"
+              class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 accent-focus"
+            >
+              @for (locale of locales; track locale) {
+                <option [value]="locale">{{ localeLabel(locale) }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label for="gourmet-i18n-name" class="block text-sm font-medium text-slate-700">
+            Nombre ({{ localeLabel(selectedLocale()) }})
+          </label>
+          <input
+            id="gourmet-i18n-name"
+            type="text"
+            formControlName="i18nName"
+            class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 accent-focus"
+            [class.border-red-400]="fieldError('i18nName')"
+          />
+          @if (fieldError('i18nName'); as error) {
+            <p class="mt-1.5 text-xs text-red-600">{{ error }}</p>
+          }
+        </div>
+
+        <div>
+          <label for="gourmet-i18n-description" class="block text-sm font-medium text-slate-700">
+            Descripción ({{ localeLabel(selectedLocale()) }})
+          </label>
+          <textarea
+            id="gourmet-i18n-description"
+            formControlName="i18nDescription"
+            rows="3"
+            class="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 accent-focus"
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label for="gourmet-slug" class="block text-sm font-medium text-slate-700">Slug</label>
+          <input
+            id="gourmet-slug"
+            type="text"
+            formControlName="slug"
+            class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+            [class.border-red-400]="fieldError('slug')"
+          />
+          @if (fieldError('slug'); as error) {
+            <p class="mt-1.5 text-xs text-red-600">{{ error }}</p>
+          }
+        </div>
+
+        <div>
+          <label for="gourmet-key" class="block text-sm font-medium text-slate-700">Key</label>
+          <input
+            id="gourmet-key"
+            type="text"
+            formControlName="key"
+            class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+            [class.border-red-400]="fieldError('key')"
+          />
+          @if (fieldError('key'); as error) {
+            <p class="mt-1.5 text-xs text-red-600">{{ error }}</p>
+          }
+        </div>
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label for="gourmet-category" class="block text-sm font-medium text-slate-700">
+            Categoría
+          </label>
+          <input
+            id="gourmet-category"
+            type="text"
+            formControlName="category"
+            class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+            [class.border-red-400]="fieldError('category')"
+          />
+          @if (fieldError('category'); as error) {
+            <p class="mt-1.5 text-xs text-red-600">{{ error }}</p>
+          }
+        </div>
+
+        <div>
+          <label for="gourmet-section" class="block text-sm font-medium text-slate-700">
+            Section ID
+          </label>
+          <input
+            id="gourmet-section"
+            type="text"
+            formControlName="sectionId"
+            class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+            [class.border-red-400]="fieldError('sectionId')"
+          />
+          @if (fieldError('sectionId'); as error) {
+            <p class="mt-1.5 text-xs text-red-600">{{ error }}</p>
+          }
+        </div>
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-3">
+        <div>
+          <label for="gourmet-price" class="block text-sm font-medium text-slate-700">Precio</label>
+          <input
+            id="gourmet-price"
+            type="number"
+            min="0"
+            step="0.01"
+            formControlName="price"
+            class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+            [class.border-red-400]="fieldError('price')"
+          />
+          @if (fieldError('price'); as error) {
+            <p class="mt-1.5 text-xs text-red-600">{{ error }}</p>
+          }
+        </div>
+
+        <div>
+          <label for="gourmet-profesional-price" class="block text-sm font-medium text-slate-700">
+            Precio profesional
+          </label>
+          <input
+            id="gourmet-profesional-price"
+            type="number"
+            min="0"
+            step="0.01"
+            formControlName="profesionalPrice"
+            class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+            [class.border-red-400]="fieldError('profesionalPrice')"
+          />
+          @if (fieldError('profesionalPrice'); as error) {
+            <p class="mt-1.5 text-xs text-red-600">{{ error }}</p>
+          }
+        </div>
+
+        <div>
+          <label for="gourmet-currency" class="block text-sm font-medium text-slate-700">
+            Moneda
+          </label>
+          <input
+            id="gourmet-currency"
+            type="text"
+            formControlName="currency"
+            class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+            [class.border-red-400]="fieldError('currency')"
+          />
+          @if (fieldError('currency'); as error) {
+            <p class="mt-1.5 text-xs text-red-600">{{ error }}</p>
+          }
+        </div>
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label for="gourmet-sort-order" class="block text-sm font-medium text-slate-700">
+            Orden
+          </label>
+          <input
+            id="gourmet-sort-order"
+            type="number"
+            min="0"
+            formControlName="sortOrder"
+            class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+            [class.border-red-400]="fieldError('sortOrder')"
+          />
+          @if (fieldError('sortOrder'); as error) {
+            <p class="mt-1.5 text-xs text-red-600">{{ error }}</p>
+          }
+        </div>
+
+        <div class="flex items-end">
+          <label class="flex items-center gap-2 pb-2 text-sm font-medium text-slate-700">
+            <input
+              type="checkbox"
+              formControlName="active"
+              class="h-4 w-4 rounded border-slate-300 text-emerald-700 focus:ring-emerald-600"
+            />
+            Producto activo
+          </label>
+        </div>
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label for="gourmet-name-key" class="block text-sm font-medium text-slate-700">
+            Name key
+          </label>
+          <input
+            id="gourmet-name-key"
+            type="text"
+            formControlName="nameKey"
+            class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+            [class.border-red-400]="fieldError('nameKey')"
+          />
+          @if (fieldError('nameKey'); as error) {
+            <p class="mt-1.5 text-xs text-red-600">{{ error }}</p>
+          }
+        </div>
+
+        <div>
+          <label for="gourmet-description-key" class="block text-sm font-medium text-slate-700">
+            Description key
+          </label>
+          <input
+            id="gourmet-description-key"
+            type="text"
+            formControlName="descriptionKey"
+            class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+            [class.border-red-400]="fieldError('descriptionKey')"
+          />
+          @if (fieldError('descriptionKey'); as error) {
+            <p class="mt-1.5 text-xs text-red-600">{{ error }}</p>
+          }
+        </div>
+      </div>
+
+      <div>
+        <label for="gourmet-image" class="block text-sm font-medium text-slate-700">Imagen</label>
+        <input
+          id="gourmet-image"
+          type="text"
+          formControlName="image"
+          placeholder="Ruta o nombre de archivo"
+          class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+        />
+      </div>
+
+      <div>
+        <label for="gourmet-image-url" class="block text-sm font-medium text-slate-700">
+          URL de imagen
+        </label>
+        <input
+          id="gourmet-image-url"
+          type="url"
+          formControlName="imageUrl"
+          class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+        />
+      </div>
+
+      <div>
+        <label for="gourmet-source-url" class="block text-sm font-medium text-slate-700">
+          URL de origen
+        </label>
+        <input
+          id="gourmet-source-url"
+          type="url"
+          formControlName="sourceUrl"
+          class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+        />
+      </div>
+
+      <div class="flex justify-end gap-3 pt-2">
+        <button
+          type="button"
+          (click)="onCancel()"
+          class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+        >
+          Cancelar
+        </button>
+        <button type="submit" class="btn-primary px-4 py-2">
+          {{ isEditing ? 'Guardar cambios' : 'Agregar producto' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -21,6 +21,12 @@ export const routes: Routes = [
     loadChildren: () => import('./the-lake/the-lake.routes').then((m) => m.THE_LAKE_ROUTES),
   },
   {
+    path: 'terrainfinitus',
+    canActivate: [authGuard],
+    loadChildren: () =>
+      import('./terrainfinitus/terrainfinitus.routes').then((m) => m.TERRAINFINITUS_ROUTES),
+  },
+  {
     path: 'usuarios',
     canActivate: [authGuard],
     loadChildren: () => import('./users/user.routes').then((m) => m.USER_ROUTES),
