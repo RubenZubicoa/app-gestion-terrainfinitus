@@ -47,7 +47,12 @@ export class Orders implements OnInit {
   protected readonly error = signal<string | null>(null);
   protected readonly showDetail = signal(false);
   protected readonly selectedOrder = signal<Order | null>(null);
+
+  protected readonly customerFilter = signal('');
+  protected readonly emailFilter = signal('');
+  protected readonly phoneFilter = signal('');
   protected readonly statusFilter = signal<StatusFilter>('all');
+  protected readonly dateFilter = signal('');
 
   protected readonly statusFilterOptions = [
     { value: 'all' as const, label: 'Todos' },
@@ -57,15 +62,49 @@ export class Orders implements OnInit {
     })),
   ];
 
+  protected readonly hasActiveFilters = computed(() => {
+    return (
+      this.customerFilter().trim() !== '' ||
+      this.emailFilter().trim() !== '' ||
+      this.phoneFilter().trim() !== '' ||
+      this.statusFilter() !== 'all' ||
+      this.dateFilter() !== ''
+    );
+  });
+
   protected readonly filteredOrders = computed(() => {
-    const filter = this.statusFilter();
-    const orders = this.orders();
+    const customer = this.customerFilter().trim().toLowerCase();
+    const email = this.emailFilter().trim().toLowerCase();
+    const phone = this.normalizePhone(this.phoneFilter());
+    const status = this.statusFilter();
+    const date = this.dateFilter();
 
-    if (filter === 'all') {
-      return orders;
-    }
+    return this.orders().filter((order) => {
+      if (customer) {
+        const fullName = `${order.name} ${order.lastName}`.trim().toLowerCase();
+        if (!fullName.includes(customer)) {
+          return false;
+        }
+      }
 
-    return orders.filter((order) => order.status === filter);
+      if (email && !order.email.toLowerCase().includes(email)) {
+        return false;
+      }
+
+      if (phone && !this.normalizePhone(order.phone).includes(phone)) {
+        return false;
+      }
+
+      if (status !== 'all' && order.status !== status) {
+        return false;
+      }
+
+      if (date && !this.matchesDateFilter(order.createdAt, date)) {
+        return false;
+      }
+
+      return true;
+    });
   });
 
   protected readonly tableColumns = computed<DataTableColumn<Order>[]>(() => [
@@ -117,9 +156,32 @@ export class Orders implements OnInit {
     this.loadOrders();
   }
 
+  protected onCustomerFilterChange(event: Event): void {
+    this.customerFilter.set((event.target as HTMLInputElement).value);
+  }
+
+  protected onEmailFilterChange(event: Event): void {
+    this.emailFilter.set((event.target as HTMLInputElement).value);
+  }
+
+  protected onPhoneFilterChange(event: Event): void {
+    this.phoneFilter.set((event.target as HTMLInputElement).value);
+  }
+
   protected onStatusFilterChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value as StatusFilter;
-    this.statusFilter.set(value);
+    this.statusFilter.set((event.target as HTMLSelectElement).value as StatusFilter);
+  }
+
+  protected onDateFilterChange(event: Event): void {
+    this.dateFilter.set((event.target as HTMLInputElement).value);
+  }
+
+  protected clearFilters(): void {
+    this.customerFilter.set('');
+    this.emailFilter.set('');
+    this.phoneFilter.set('');
+    this.statusFilter.set('all');
+    this.dateFilter.set('');
   }
 
   protected openDetail(order: Order): void {
@@ -164,6 +226,24 @@ export class Orders implements OnInit {
 
   protected trackOrder(order: Order): string {
     return order.uuid;
+  }
+
+  private normalizePhone(value: string): string {
+    return value.replace(/\D/g, '');
+  }
+
+  private matchesDateFilter(createdAt: string | number | Date, dateValue: string): boolean {
+    const orderDate = new Date(createdAt);
+
+    if (Number.isNaN(orderDate.getTime())) {
+      return false;
+    }
+
+    const year = orderDate.getFullYear();
+    const month = String(orderDate.getMonth() + 1).padStart(2, '0');
+    const day = String(orderDate.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}` === dateValue;
   }
 
   private loadOrders(): void {

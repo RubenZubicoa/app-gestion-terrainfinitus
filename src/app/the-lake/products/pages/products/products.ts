@@ -22,6 +22,8 @@ import {
 import { ProductFormDialog, ProductFormSubmit } from '../../components/product-form-dialog/product-form-dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
+type TriFilter = 'all' | 'yes' | 'no';
+
 @Component({
   selector: 'app-products',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -42,6 +44,18 @@ export class Products implements OnInit {
   protected readonly error = signal<string | null>(null);
   protected readonly showForm = signal(false);
   protected readonly editingProduct = signal<Product | null>(null);
+
+  protected readonly nameFilter = signal('');
+  protected readonly brandFilter = signal('all');
+  protected readonly categoryFilter = signal('all');
+  protected readonly offerFilter = signal<TriFilter>('all');
+  protected readonly featuredFilter = signal<TriFilter>('all');
+
+  protected readonly triFilterOptions: { value: TriFilter; label: string }[] = [
+    { value: 'all', label: 'Todos' },
+    { value: 'yes', label: 'Sí' },
+    { value: 'no', label: 'No' },
+  ];
 
   private readonly brandMap = computed(() => {
     const map = new Map<string, string>();
@@ -68,6 +82,77 @@ export class Products implements OnInit {
     }
 
     return map;
+  });
+
+  protected readonly categoryFilterOptions = computed(() => {
+    const options: { value: string; label: string }[] = [{ value: 'all', label: 'Todas' }];
+
+    for (const category of this.categories()) {
+      options.push({ value: category.uuid, label: category.label });
+
+      for (const child of category.children ?? []) {
+        options.push({
+          value: child.uuid,
+          label: `${category.label} › ${child.label}`,
+        });
+      }
+    }
+
+    return options;
+  });
+
+  protected readonly hasActiveFilters = computed(() => {
+    return (
+      this.nameFilter().trim() !== '' ||
+      this.brandFilter() !== 'all' ||
+      this.categoryFilter() !== 'all' ||
+      this.offerFilter() !== 'all' ||
+      this.featuredFilter() !== 'all'
+    );
+  });
+
+  protected readonly filteredProducts = computed(() => {
+    const name = this.nameFilter().trim().toLowerCase();
+    const brandId = this.brandFilter();
+    const categoryId = this.categoryFilter();
+    const offer = this.offerFilter();
+    const featured = this.featuredFilter();
+    const categories = this.categories();
+
+    return this.products().filter((product) => {
+      if (name && !product.name.toLowerCase().includes(name)) {
+        return false;
+      }
+
+      if (brandId !== 'all' && product.brandId !== brandId) {
+        return false;
+      }
+
+      if (
+        categoryId !== 'all' &&
+        !this.matchesCategoryFilter(product.categoryId, categoryId, categories)
+      ) {
+        return false;
+      }
+
+      if (offer === 'yes' && product.isInOffer !== true) {
+        return false;
+      }
+
+      if (offer === 'no' && product.isInOffer === true) {
+        return false;
+      }
+
+      if (featured === 'yes' && !product.isFeatured) {
+        return false;
+      }
+
+      if (featured === 'no' && product.isFeatured) {
+        return false;
+      }
+
+      return true;
+    });
   });
 
   protected readonly tableColumns = computed<DataTableColumn<Product>[]>(() => {
@@ -140,6 +225,34 @@ export class Products implements OnInit {
 
   ngOnInit(): void {
     this.loadData();
+  }
+
+  protected onNameFilterChange(event: Event): void {
+    this.nameFilter.set((event.target as HTMLInputElement).value);
+  }
+
+  protected onBrandFilterChange(event: Event): void {
+    this.brandFilter.set((event.target as HTMLSelectElement).value);
+  }
+
+  protected onCategoryFilterChange(event: Event): void {
+    this.categoryFilter.set((event.target as HTMLSelectElement).value);
+  }
+
+  protected onOfferFilterChange(event: Event): void {
+    this.offerFilter.set((event.target as HTMLSelectElement).value as TriFilter);
+  }
+
+  protected onFeaturedFilterChange(event: Event): void {
+    this.featuredFilter.set((event.target as HTMLSelectElement).value as TriFilter);
+  }
+
+  protected clearFilters(): void {
+    this.nameFilter.set('');
+    this.brandFilter.set('all');
+    this.categoryFilter.set('all');
+    this.offerFilter.set('all');
+    this.featuredFilter.set('all');
   }
 
   protected openAddForm(): void {
@@ -245,6 +358,24 @@ export class Products implements OnInit {
 
   protected trackProduct(product: Product): string {
     return product.uuid;
+  }
+
+  private matchesCategoryFilter(
+    productCategoryId: string,
+    filterCategoryId: string,
+    categories: Category[],
+  ): boolean {
+    if (productCategoryId === filterCategoryId) {
+      return true;
+    }
+
+    const parent = categories.find((category) => category.uuid === filterCategoryId);
+
+    if (!parent) {
+      return false;
+    }
+
+    return (parent.children ?? []).some((child) => child.uuid === productCategoryId);
   }
 
   private loadData(): void {
