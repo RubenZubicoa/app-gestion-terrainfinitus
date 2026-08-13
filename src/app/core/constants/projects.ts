@@ -33,9 +33,12 @@ export const PROJECTS: readonly Project[] = [
         path: '/terrainfinitus/productos-gourmet',
         icon: 'box',
       },
-      { id: 'categorias', label: 'Categorías', path: '/categorias', icon: 'folder' },
-      { id: 'marcas', label: 'Marcas', path: '/marcas', icon: 'tag' },
-      { id: 'pedidos', label: 'Pedidos', path: '/pedidos', icon: 'cart' },
+      {
+        id: 'pedidos-gourmet',
+        label: 'Pedidos gourmet',
+        path: '/terrainfinitus/pedidos-gourmet',
+        icon: 'cart',
+      },
     ],
   },
 ] as const;

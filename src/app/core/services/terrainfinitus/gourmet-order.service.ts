@@ -17,6 +17,12 @@ export class GourmetOrderService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = environment.terrainfinitusApiUrl + '/api/gourmet-orders';
 
+  getGourmetOrders(): Observable<GourmetOrder[]> {
+    return this.http
+      .get<GourmetOrderDB[]>(this.apiUrl)
+      .pipe(map((orders) => orders.map(mapGourmetOrderDBToGourmetOrder)));
+  }
+
   createGourmetOrder(gourmetOrder: AddGourmetOrder): Observable<GourmetOrder> {
     return this.http
       .post<GourmetOrderDB>(this.apiUrl, gourmetOrder)
