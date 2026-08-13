@@ -51,6 +51,12 @@ export class Users implements OnInit {
       format: (user) => `${user.name} ${user.lastName}`.trim(),
     },
     {
+      key: 'dni',
+      label: 'DNI',
+      cellClass: 'text-slate-600',
+      format: (user) => user.dni || '—',
+    },
+    {
       key: 'email',
       label: 'Email',
       cellClass: 'text-slate-600',

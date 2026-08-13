@@ -11,6 +11,7 @@ export type UserDB = {
   _id: string;
   name: string;
   lastName: string;
+  dni?: string;
   phone: string;
   address: string;
   email: string;
@@ -25,6 +26,7 @@ export interface User {
   uuid: string;
   name: string;
   lastName: string;
+  dni?: string;
   phone: string;
   address: string;
   email: string;
@@ -56,6 +58,7 @@ export function mapUserDBToUser(userDB: UserDB): User {
     uuid: userDB._id,
     name: userDB.name,
     lastName: userDB.lastName,
+    dni: userDB.dni,
     phone: userDB.phone,
     address: userDB.address,
     email: userDB.email,
