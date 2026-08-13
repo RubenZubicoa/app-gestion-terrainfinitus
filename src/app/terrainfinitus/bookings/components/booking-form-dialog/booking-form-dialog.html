@@ -1,0 +1,222 @@
+<div
+  class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4"
+  role="dialog"
+  aria-modal="true"
+  [attr.aria-label]="isEditing ? 'Editar reserva' : 'Agregar reserva'"
+>
+  <div
+    class="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-slate-200 bg-white p-6 shadow-xl"
+  >
+    <h2 class="text-lg font-semibold text-slate-900">
+      {{ isEditing ? 'Editar reserva' : 'Agregar reserva' }}
+    </h2>
+
+    <form class="mt-4 space-y-4" [formGroup]="form" (submit)="onSubmit($event)">
+      @if (showValidationSummary()) {
+        <div
+          class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900"
+          role="alert"
+        >
+          Revisa el formulario: hay campos obligatorios sin completar o con un formato incorrecto.
+        </div>
+      }
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label for="booking-user-id" class="block text-sm font-medium text-slate-700">
+            ID usuario
+          </label>
+          <input
+            id="booking-user-id"
+            type="text"
+            formControlName="userId"
+            class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+            [class.border-red-400]="fieldError('userId')"
+          />
+          @if (fieldError('userId'); as error) {
+            <p class="mt-1.5 text-xs text-red-600">{{ error }}</p>
+          }
+        </div>
+
+        <div>
+          <label for="booking-room-id" class="block text-sm font-medium text-slate-700">
+            ID habitación
+          </label>
+          <input
+            id="booking-room-id"
+            type="text"
+            formControlName="roomId"
+            class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+            [class.border-red-400]="fieldError('roomId')"
+          />
+          @if (fieldError('roomId'); as error) {
+            <p class="mt-1.5 text-xs text-red-600">{{ error }}</p>
+          }
+        </div>
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label for="booking-start-date" class="block text-sm font-medium text-slate-700">
+            Fecha inicio
+          </label>
+          <input
+            id="booking-start-date"
+            type="date"
+            formControlName="startDate"
+            class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+            [class.border-red-400]="fieldError('startDate')"
+          />
+          @if (fieldError('startDate'); as error) {
+            <p class="mt-1.5 text-xs text-red-600">{{ error }}</p>
+          }
+        </div>
+
+        <div>
+          <label for="booking-end-date" class="block text-sm font-medium text-slate-700">
+            Fecha fin
+          </label>
+          <input
+            id="booking-end-date"
+            type="date"
+            formControlName="endDate"
+            class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+            [class.border-red-400]="fieldError('endDate')"
+          />
+          @if (fieldError('endDate'); as error) {
+            <p class="mt-1.5 text-xs text-red-600">{{ error }}</p>
+          }
+        </div>
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-3">
+        <div>
+          <label for="booking-guests" class="block text-sm font-medium text-slate-700">
+            Huéspedes
+          </label>
+          <input
+            id="booking-guests"
+            type="number"
+            min="1"
+            formControlName="guests"
+            class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+            [class.border-red-400]="fieldError('guests')"
+          />
+          @if (fieldError('guests'); as error) {
+            <p class="mt-1.5 text-xs text-red-600">{{ error }}</p>
+          }
+        </div>
+
+        <div>
+          <label for="booking-price" class="block text-sm font-medium text-slate-700">Precio</label>
+          <input
+            id="booking-price"
+            type="number"
+            min="0"
+            step="0.01"
+            formControlName="price"
+            class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+            [class.border-red-400]="fieldError('price')"
+          />
+          @if (fieldError('price'); as error) {
+            <p class="mt-1.5 text-xs text-red-600">{{ error }}</p>
+          }
+        </div>
+
+        <div>
+          <label for="booking-currency" class="block text-sm font-medium text-slate-700">
+            Moneda
+          </label>
+          <input
+            id="booking-currency"
+            type="text"
+            formControlName="currency"
+            class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+            [class.border-red-400]="fieldError('currency')"
+          />
+          @if (fieldError('currency'); as error) {
+            <p class="mt-1.5 text-xs text-red-600">{{ error }}</p>
+          }
+        </div>
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label for="booking-status" class="block text-sm font-medium text-slate-700">
+            Estado
+          </label>
+          <select
+            id="booking-status"
+            formControlName="status"
+            class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+          >
+            @for (status of statusOptions; track status) {
+              <option [value]="status">{{ statusLabels[status] }}</option>
+            }
+          </select>
+        </div>
+
+        <div>
+          <label for="booking-payment-status" class="block text-sm font-medium text-slate-700">
+            Estado de pago
+          </label>
+          <select
+            id="booking-payment-status"
+            formControlName="paymentStatus"
+            class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+          >
+            @for (status of paymentStatusOptions; track status) {
+              <option [value]="status">{{ paymentStatusLabels[status] }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label for="booking-payment-method" class="block text-sm font-medium text-slate-700">
+            Método de pago
+          </label>
+          <select
+            id="booking-payment-method"
+            formControlName="paymentMethod"
+            class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+          >
+            @for (method of paymentMethods; track method) {
+              <option [value]="method">{{ paymentMethodLabels[method] }}</option>
+            }
+          </select>
+        </div>
+
+        <div>
+          <label for="booking-payment-date" class="block text-sm font-medium text-slate-700">
+            Fecha de pago
+          </label>
+          <input
+            id="booking-payment-date"
+            type="date"
+            formControlName="paymentDate"
+            class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+            [class.border-red-400]="fieldError('paymentDate')"
+          />
+          @if (fieldError('paymentDate'); as error) {
+            <p class="mt-1.5 text-xs text-red-600">{{ error }}</p>
+          }
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-3 pt-2">
+        <button
+          type="button"
+          (click)="onCancel()"
+          class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+        >
+          Cancelar
+        </button>
+        <button type="submit" class="btn-primary px-4 py-2">
+          {{ isEditing ? 'Guardar cambios' : 'Agregar reserva' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -26,7 +26,7 @@ export const PROJECTS: readonly Project[] = [
     badgeClass: 'bg-emerald-700 text-white',
     sections: [
       { id: 'dashboard', label: 'Inicio', path: '/dashboard', icon: 'home' },
-      { id: 'reservas', label: 'Reservas', path: '/reservas', icon: 'calendar' },
+      { id: 'reservas', label: 'Reservas', path: '/terrainfinitus/reservas', icon: 'calendar' },
       {
         id: 'productos-gourmet',
         label: 'Productos gourmet',
