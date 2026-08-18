@@ -3,6 +3,7 @@ import {
   Component,
   effect,
   input,
+  OnDestroy,
   output,
   signal,
   untracked,
@@ -15,6 +16,10 @@ export type SubcategoryFormItem = {
   uuid?: string;
   label: string;
   description: string;
+  existingImageUrl: string | null;
+  imageFile: File | null;
+  previewUrl: string | null;
+  imageBroken: boolean;
 };
 
 export type CategoryFormContext =
@@ -26,6 +31,7 @@ export type CategoryFormSubmit =
       mode: 'parent';
       uuid?: string;
       values: { label: string; description?: string };
+      imageFile: File | null;
       subcategories: SubcategoryFormItem[];
     }
   | {
@@ -33,7 +39,14 @@ export type CategoryFormSubmit =
       uuid?: string;
       parentUuid: string;
       values: { label: string; description?: string };
+      imageFile: File | null;
+      existingImageUrl: string | null;
     };
+
+type ImagePreview = {
+  file: File;
+  previewUrl: string;
+};
 
 @Component({
   selector: 'app-category-form-dialog',
@@ -41,7 +54,7 @@ export type CategoryFormSubmit =
   imports: [ReactiveFormsModule],
   templateUrl: './category-form-dialog.html',
 })
-export class CategoryFormDialog {
+export class CategoryFormDialog implements OnDestroy {
   readonly context = input.required<CategoryFormContext>();
   readonly parentCategories = input<Category[]>([]);
 
@@ -49,6 +62,9 @@ export class CategoryFormDialog {
   readonly cancelled = output<void>();
 
   protected readonly subcategories = signal<SubcategoryFormItem[]>([]);
+  protected readonly imagePreview = signal<ImagePreview | null>(null);
+  protected readonly existingImageUrl = signal<string | null>(null);
+  protected readonly existingImageBroken = signal(false);
 
   protected readonly form = new FormGroup({
     label: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -73,16 +89,14 @@ export class CategoryFormDialog {
               description: category.description ?? '',
               parentCategoryId: '',
             });
-            this.subcategories.set(
-              (category.children ?? []).map((child) => ({
-                uuid: child.uuid,
-                label: child.label,
-                description: child.description ?? '',
-              })),
+            this.replaceSubcategories(
+              (category.children ?? []).map((child) => this.createSubcategoryItem(child)),
             );
+            this.existingImageUrl.set(category.image ?? null);
           } else {
             this.form.reset({ label: '', description: '', parentCategoryId: '' });
-            this.subcategories.set([]);
+            this.replaceSubcategories([]);
+            this.existingImageUrl.set(null);
           }
         } else {
           const category = formContext.category;
@@ -90,7 +104,7 @@ export class CategoryFormDialog {
 
           this.form.controls.parentCategoryId.setValidators([Validators.required]);
           this.form.controls.parentCategoryId.updateValueAndValidity({ emitEvent: false });
-          this.subcategories.set([]);
+          this.replaceSubcategories([]);
 
           if (category) {
             this.form.patchValue({
@@ -98,16 +112,26 @@ export class CategoryFormDialog {
               description: category.description ?? '',
               parentCategoryId: parentCategory?.uuid ?? '',
             });
+            this.existingImageUrl.set(category.image ?? null);
           } else {
             this.form.reset({
               label: '',
               description: '',
               parentCategoryId: parentCategory?.uuid ?? '',
             });
+            this.existingImageUrl.set(null);
           }
         }
+
+        this.existingImageBroken.set(false);
+        this.clearImagePreview();
       });
     });
+  }
+
+  ngOnDestroy(): void {
+    this.clearImagePreview();
+    this.clearSubcategoryPreviews(this.subcategories());
   }
 
   protected get isEditing(): boolean {
@@ -135,7 +159,7 @@ export class CategoryFormDialog {
   }
 
   protected addSubcategory(): void {
-    this.subcategories.update((items) => [...items, { label: '', description: '' }]);
+    this.subcategories.update((items) => [...items, this.createSubcategoryItem()]);
   }
 
   protected updateSubcategoryLabel(index: number, value: string): void {
@@ -153,7 +177,122 @@ export class CategoryFormDialog {
   }
 
   protected removeSubcategory(index: number): void {
-    this.subcategories.update((items) => items.filter((_, itemIndex) => itemIndex !== index));
+    this.subcategories.update((items) => {
+      const removed = items[index];
+
+      if (removed?.previewUrl) {
+        URL.revokeObjectURL(removed.previewUrl);
+      }
+
+      return items.filter((_, itemIndex) => itemIndex !== index);
+    });
+  }
+
+  protected hasSubcategoryExistingImage(item: SubcategoryFormItem): boolean {
+    return item.existingImageUrl !== null && !item.imageBroken;
+  }
+
+  protected hasSubcategoryImagePreview(item: SubcategoryFormItem): boolean {
+    return item.previewUrl !== null;
+  }
+
+  protected onSubcategoryImageSelected(index: number, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (!file?.type.startsWith('image/')) {
+      return;
+    }
+
+    this.subcategories.update((items) =>
+      items.map((item, itemIndex) => {
+        if (itemIndex !== index) {
+          return item;
+        }
+
+        if (item.previewUrl) {
+          URL.revokeObjectURL(item.previewUrl);
+        }
+
+        return {
+          ...item,
+          imageFile: file,
+          previewUrl: URL.createObjectURL(file),
+        };
+      }),
+    );
+    input.value = '';
+  }
+
+  protected removeSubcategoryNewImage(index: number): void {
+    this.subcategories.update((items) =>
+      items.map((item, itemIndex) => {
+        if (itemIndex !== index) {
+          return item;
+        }
+
+        if (item.previewUrl) {
+          URL.revokeObjectURL(item.previewUrl);
+        }
+
+        return {
+          ...item,
+          imageFile: null,
+          previewUrl: null,
+        };
+      }),
+    );
+  }
+
+  protected removeSubcategoryExistingImage(index: number): void {
+    this.subcategories.update((items) =>
+      items.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, existingImageUrl: null, imageBroken: false } : item,
+      ),
+    );
+  }
+
+  protected onSubcategoryExistingImageError(index: number): void {
+    this.subcategories.update((items) =>
+      items.map((item, itemIndex) => (itemIndex === index ? { ...item, imageBroken: true } : item)),
+    );
+  }
+
+  protected get hasImagePreview(): boolean {
+    return this.imagePreview() !== null;
+  }
+
+  protected get hasExistingImage(): boolean {
+    return this.existingImageUrl() !== null && !this.existingImageBroken();
+  }
+
+  protected onImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (!file?.type.startsWith('image/')) {
+      return;
+    }
+
+    this.clearImagePreview();
+    this.imagePreview.set({
+      file,
+      previewUrl: URL.createObjectURL(file),
+    });
+    input.value = '';
+  }
+
+  protected removeNewImage(): void {
+    this.clearImagePreview();
+  }
+
+  protected removeExistingImage(): void {
+    this.existingImageUrl.set(null);
+    this.existingImageBroken.set(false);
+  }
+
+  protected onExistingImageError(): void {
+    this.existingImageBroken.set(true);
   }
 
   protected onSubmit(event: Event): void {
@@ -166,6 +305,7 @@ export class CategoryFormDialog {
 
     const { label, description, parentCategoryId } = this.form.getRawValue();
     const formContext = this.context();
+    const imageFile = this.imagePreview()?.file ?? null;
 
     if (formContext.mode === 'parent') {
       this.submitted.emit({
@@ -175,6 +315,7 @@ export class CategoryFormDialog {
           label,
           description: description || undefined,
         },
+        imageFile,
         subcategories: this.subcategories().filter((item) => item.label.trim()),
       });
       return;
@@ -188,10 +329,47 @@ export class CategoryFormDialog {
         label,
         description: description || undefined,
       },
+      imageFile,
+      existingImageUrl: this.existingImageUrl(),
     });
   }
 
   protected onCancel(): void {
     this.cancelled.emit();
+  }
+
+  private createSubcategoryItem(child?: Category): SubcategoryFormItem {
+    return {
+      uuid: child?.uuid,
+      label: child?.label ?? '',
+      description: child?.description ?? '',
+      existingImageUrl: child?.image ?? null,
+      imageFile: null,
+      previewUrl: null,
+      imageBroken: false,
+    };
+  }
+
+  private replaceSubcategories(items: SubcategoryFormItem[]): void {
+    this.clearSubcategoryPreviews(this.subcategories());
+    this.subcategories.set(items);
+  }
+
+  private clearSubcategoryPreviews(items: SubcategoryFormItem[]): void {
+    for (const item of items) {
+      if (item.previewUrl) {
+        URL.revokeObjectURL(item.previewUrl);
+      }
+    }
+  }
+
+  private clearImagePreview(): void {
+    const preview = this.imagePreview();
+
+    if (preview) {
+      URL.revokeObjectURL(preview.previewUrl);
+    }
+
+    this.imagePreview.set(null);
   }
 }

@@ -8,6 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { forkJoin, of, switchMap, tap } from 'rxjs';
 
 import { Category } from '../../../../core/models/the-lake/Category';
 import { CategoryService } from '../../../../core/services/the-lake/category';
@@ -43,6 +44,7 @@ export class Categories implements OnInit {
   protected readonly categories = signal<Category[]>([]);
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
+  protected readonly success = signal<string | null>(null);
   protected readonly showForm = signal(false);
   protected readonly formContext = signal<CategoryFormContext>({
     mode: 'parent',
@@ -63,6 +65,12 @@ export class Categories implements OnInit {
       label: 'Descripción',
       cellClass: 'max-w-xs truncate text-slate-600',
       format: (row) => row.description || '—',
+    },
+    {
+      key: 'image',
+      label: 'Imagen',
+      cellClass: 'text-slate-600',
+      format: (row) => (row.category.image ? 'Sí' : 'No'),
     },
   ]);
 
@@ -117,8 +125,11 @@ export class Categories implements OnInit {
       .deleteCategory(row.uuid)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => this.loadCategories(),
-        error: () => this.error.set('No se pudo eliminar la categoría.'),
+        next: () => {
+          this.loadCategories();
+          this.setSuccess('La categoría se eliminó correctamente.');
+        },
+        error: () => this.setError('No se pudo eliminar la categoría.'),
       });
   }
 
@@ -129,96 +140,106 @@ export class Categories implements OnInit {
   private saveParentCategory(
     payload: Extract<CategoryFormSubmit, { mode: 'parent' }>,
   ): void {
-    const children = this.mapSubcategoriesToChildren(payload.subcategories);
+    const parentPayload = {
+      label: payload.values.label,
+      description: payload.values.description,
+      image: payload.imageFile ?? undefined,
+    };
 
-    if (payload.uuid) {
-      this.categoryService
-        .updateCategory(payload.uuid, {
-          label: payload.values.label,
-          description: payload.values.description,
-          children,
-        })
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({
-          next: () => {
-            this.loadCategories();
-            this.closeForm();
-          },
-          error: () => this.error.set('No se pudo actualizar la categoría.'),
-        });
-      return;
-    }
+    const request = payload.uuid
+      ? this.categoryService.updateCategory(payload.uuid, parentPayload)
+      : this.categoryService.createCategory(parentPayload);
 
-    this.categoryService
-      .createCategory({
-        label: payload.values.label,
-        description: payload.values.description,
-        children,
-      })
-      .pipe(takeUntilDestroyed(this.destroyRef))
+    request
+      .pipe(
+        tap(() => this.closeForm()),
+        switchMap((parent) => {
+          const parentUuid = parent.uuid || payload.uuid;
+
+          if (!parentUuid) {
+            return of(null);
+          }
+
+          return this.syncSubcategories(parentUuid, payload.subcategories);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe({
         next: () => {
           this.loadCategories();
-          this.closeForm();
+          this.setSuccess(
+            payload.uuid
+              ? 'La categoría se actualizó correctamente.'
+              : 'La categoría se creó correctamente.',
+          );
         },
-        error: () => this.error.set('No se pudo crear la categoría.'),
+        error: () =>
+          this.setError(
+            payload.uuid ? 'No se pudo actualizar la categoría.' : 'No se pudo crear la categoría.',
+          ),
       });
   }
 
   private saveSubcategory(
     payload: Extract<CategoryFormSubmit, { mode: 'subcategory' }>,
   ): void {
-    const parent = this.categories().find((category) => category.uuid === payload.parentUuid);
+    const body = {
+      label: payload.values.label,
+      description: payload.values.description,
+      image: payload.imageFile ?? undefined,
+    };
 
-    if (!parent) {
-      this.error.set('No se encontró la categoría padre.');
-      return;
-    }
+    const request = payload.uuid
+      ? this.categoryService.updateSubCategory(payload.uuid, payload.parentUuid, body)
+      : this.categoryService.createSubCategory(payload.parentUuid, body);
 
-    const children = [...(parent.children ?? [])];
-
-    if (payload.uuid) {
-      const index = children.findIndex((child) => child.uuid === payload.uuid);
-
-      if (index === -1) {
-        this.error.set('No se encontró la subcategoría.');
-        return;
-      }
-
-      children[index] = {
-        ...children[index],
-        label: payload.values.label,
-        description: payload.values.description,
-      };
-    } else {
-      children.push({
-        uuid: crypto.randomUUID(),
-        label: payload.values.label,
-        description: payload.values.description,
-      });
-    }
-
-    this.categoryService
-      .updateCategory(parent.uuid, { children })
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: () => {
-          this.loadCategories();
-          this.closeForm();
-        },
-        error: () =>
-          this.error.set(
-            payload.uuid ? 'No se pudo actualizar la subcategoría.' : 'No se pudo crear la subcategoría.',
-          ),
-      });
+    request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.closeForm();
+        this.loadCategories();
+        this.setSuccess(
+          payload.uuid
+            ? 'La subcategoría se actualizó correctamente.'
+            : 'La subcategoría se creó correctamente.',
+        );
+      },
+      error: () =>
+        this.setError(
+          payload.uuid ? 'No se pudo actualizar la subcategoría.' : 'No se pudo crear la subcategoría.',
+        ),
+    });
   }
 
-  private mapSubcategoriesToChildren(subcategories: SubcategoryFormItem[]): Category[] {
-    return subcategories.map((subcategory) => ({
-      uuid: subcategory.uuid ?? crypto.randomUUID(),
-      label: subcategory.label,
-      description: subcategory.description || undefined,
-    }));
+  private syncSubcategories(parentUuid: string, subcategories: SubcategoryFormItem[]) {
+    if (subcategories.length === 0) {
+      return of(null);
+    }
+
+    return forkJoin(
+      subcategories.map((subcategory) => {
+        const body = {
+          label: subcategory.label,
+          description: subcategory.description || undefined,
+          image: subcategory.imageFile ?? undefined,
+        };
+
+        if (subcategory.uuid) {
+          return this.categoryService.updateSubCategory(subcategory.uuid, parentUuid, body);
+        }
+
+        return this.categoryService.createSubCategory(parentUuid, body);
+      }),
+    );
+  }
+
+  private setSuccess(message: string): void {
+    this.error.set(null);
+    this.success.set(message);
+  }
+
+  private setError(message: string): void {
+    this.success.set(null);
+    this.error.set(message);
   }
 
   private mapParentCategories(categories: Category[]): CategoryTableRow[] {
