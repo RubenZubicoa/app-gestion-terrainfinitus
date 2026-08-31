@@ -8,4 +8,10 @@ export const GLOBAL_SECTIONS: readonly NavSection[] = [
     path: '/usuarios',
     icon: 'users',
   },
+  {
+    id: 'clientes',
+    label: 'Clientes',
+    path: '/clientes',
+    icon: 'document',
+  },
 ] as const;

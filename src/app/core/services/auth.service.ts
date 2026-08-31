@@ -5,7 +5,7 @@ import { map, tap } from 'rxjs/operators';
 import { TokenService } from './token-service';
 import { environment } from '../../../environments/environment.development';
 import { LoginResponse, LoginResponseDB } from '../models/login-response';
-import { mapUserDBToUser } from '../models/the-lake/User';
+import { mapUserDBToUser } from '../models/User';
 import { CurrentUserService } from './current-user.service';
 
 @Injectable({

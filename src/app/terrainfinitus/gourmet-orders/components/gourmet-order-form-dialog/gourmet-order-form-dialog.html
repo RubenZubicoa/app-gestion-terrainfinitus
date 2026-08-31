@@ -79,7 +79,7 @@
                 <option value="">Seleccionar producto</option>
                 @for (product of products(); track product._id) {
                   <option [value]="product._id">
-                    {{ product.i18n?.es?.name || product.nameKey || product.slug }}
+                    {{ product.i18n.es.name || product.nameKey || product.slug }}
                   </option>
                 }
               </select>

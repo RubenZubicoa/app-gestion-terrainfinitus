@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
-import { User } from '../../../core/models/the-lake/User';
+import { User } from '../../../core/models/User';
 
 export type ChangePasswordSubmit = {
   uuid: string;

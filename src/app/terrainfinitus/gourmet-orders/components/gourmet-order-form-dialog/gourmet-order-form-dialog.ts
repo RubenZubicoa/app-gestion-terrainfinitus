@@ -110,7 +110,7 @@ export class GourmetOrderFormDialog {
 
   protected productLabel(productId: string): string {
     const product = this.products().find((item) => item._id === productId);
-    return product?.i18n?.es?.name || product?.nameKey || productId;
+    return product?.i18n.es.name || product?.nameKey || productId;
   }
 
   protected fieldError(controlName: 'userId'): string | null {

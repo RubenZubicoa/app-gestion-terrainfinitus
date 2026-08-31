@@ -1,11 +1,18 @@
-export type UserRole = 'admin' | 'user';
+export type UserRole = 'admin' | 'owner' | 'user';
 
 export const USER_ROLE_LABELS: Record<UserRole, string> = {
   admin: 'Administrador',
+  owner: 'Propietario',
   user: 'Usuario',
 };
 
 export const USER_ROLE_OPTIONS: UserRole[] = ['admin', 'user'];
+
+export const BACK_OFFICE_USER_ROLES: UserRole[] = ['admin', 'owner'];
+
+export const BACK_OFFICE_ROLE_OPTIONS: UserRole[] = ['admin', 'owner'];
+
+export const CLIENT_USER_ROLE: UserRole = 'user';
 
 export type UserDB = {
   _id: string;
@@ -17,6 +24,7 @@ export type UserDB = {
   email: string;
   password?: string;
   role: string;
+  isProfessional?: boolean;
   createdAt?: number;
   updatedAt?: number;
   isDeleted?: boolean;
@@ -32,6 +40,7 @@ export interface User {
   email: string;
   role: string;
   password?: string;
+  isProfessional?: boolean;
 }
 
 export type AddUser = {
@@ -64,6 +73,7 @@ export function mapUserDBToUser(userDB: UserDB): User {
     email: userDB.email,
     role: userDB.role,
     password: userDB.password,
+    isProfessional: userDB.isProfessional,
   };
 }
 

@@ -1,6 +1,6 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { TokenService } from './token-service';
-import { User } from '../models/the-lake/User';
+import { User } from '../models/User';
 
 @Injectable({
   providedIn: 'root',

@@ -16,11 +16,12 @@ import {
 } from '@angular/forms';
 
 import {
+  BACK_OFFICE_ROLE_OPTIONS,
+  CLIENT_USER_ROLE,
   USER_ROLE_LABELS,
-  USER_ROLE_OPTIONS,
   User,
   UserRole,
-} from '../../../core/models/the-lake/User';
+} from '../../../core/models/User';
 
 export type UserFormValues = {
   name: string;
@@ -45,11 +46,13 @@ export type UserFormSubmit = {
 })
 export class UserFormDialog {
   readonly user = input<User | null>(null);
+  readonly fixedRole = input<UserRole | null>(null);
+  readonly roleOptions = input<UserRole[]>(BACK_OFFICE_ROLE_OPTIONS);
+  readonly entityLabel = input('usuario');
 
   readonly submitted = output<UserFormSubmit>();
   readonly cancelled = output<void>();
 
-  protected readonly roleOptions = USER_ROLE_OPTIONS;
   protected readonly roleLabels = USER_ROLE_LABELS;
   protected readonly showValidationSummary = signal(false);
 
@@ -72,9 +75,11 @@ export class UserFormDialog {
   constructor() {
     effect(() => {
       const user = this.user();
+      const fixedRole = this.fixedRole();
 
       untracked(() => {
         const passwordControl = this.form.controls.password;
+        const defaultRole = fixedRole ?? CLIENT_USER_ROLE;
         this.showValidationSummary.set(false);
 
         if (user) {
@@ -87,7 +92,7 @@ export class UserFormDialog {
             phone: user.phone,
             address: user.address,
             password: '',
-            role: this.resolveRole(user.role),
+            role: fixedRole ?? this.resolveRole(user.role),
           });
         } else {
           passwordControl.enable({ emitEvent: false });
@@ -99,7 +104,7 @@ export class UserFormDialog {
             phone: '',
             address: '',
             password: '',
-            role: 'user',
+            role: defaultRole,
           });
         }
 
@@ -147,6 +152,7 @@ export class UserFormDialog {
 
     const { name, lastName, email, phone, address, password, role } = this.form.getRawValue();
     const user = this.user();
+    const fixedRole = this.fixedRole();
 
     this.submitted.emit({
       uuid: user?.uuid,
@@ -156,7 +162,7 @@ export class UserFormDialog {
         email,
         phone,
         address,
-        role,
+        role: fixedRole ?? role,
         password: password || undefined,
       },
     });
@@ -171,6 +177,8 @@ export class UserFormDialog {
   }
 
   private resolveRole(role: string): UserRole {
-    return USER_ROLE_OPTIONS.includes(role as UserRole) ? (role as UserRole) : 'user';
+    return (['admin', 'owner', 'user'] as UserRole[]).includes(role as UserRole)
+      ? (role as UserRole)
+      : 'user';
   }
 }

@@ -10,7 +10,7 @@ import {
   UpdateUser,
   User as UserModel,
   UserDB,
-} from '../models/the-lake/User';
+} from '../models/User';
 
 @Injectable({
   providedIn: 'root',

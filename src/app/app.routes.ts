@@ -31,5 +31,10 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadChildren: () => import('./users/user.routes').then((m) => m.USER_ROUTES),
   },
+  {
+    path: 'clientes',
+    canActivate: [authGuard],
+    loadChildren: () => import('./clients/client.routes').then((m) => m.CLIENT_ROUTES),
+  },
   { path: '**', redirectTo: 'dashboard' },
 ];

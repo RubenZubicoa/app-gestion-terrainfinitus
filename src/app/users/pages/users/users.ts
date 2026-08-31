@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { getUserRoleLabel, User } from '../../../core/models/the-lake/User';
+import { BACK_OFFICE_USER_ROLES, getUserRoleLabel, User, UserRole } from '../../../core/models/User';
 import { UserService } from '../../../core/services/user';
 import {
   DataTableColumn,
@@ -201,7 +201,9 @@ export class Users implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (users) => {
-          this.users.set(users);
+          this.users.set(
+            users.filter((user) => BACK_OFFICE_USER_ROLES.includes(user.role as UserRole)),
+          );
           this.loading.set(false);
         },
         error: () => {

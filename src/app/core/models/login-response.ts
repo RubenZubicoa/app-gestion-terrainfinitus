@@ -1,4 +1,4 @@
-import { UserDB, User } from "./the-lake/User";
+import { UserDB, User } from "./User";
 
 export interface LoginResponseDB {
     token: string;
