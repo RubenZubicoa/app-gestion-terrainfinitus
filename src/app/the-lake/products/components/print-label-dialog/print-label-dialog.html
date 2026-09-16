@@ -1,0 +1,39 @@
+<div
+  class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="print-label-title"
+>
+  <div class="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-xl">
+    <h2 id="print-label-title" class="text-lg font-semibold text-slate-900">
+      Imprimir etiqueta
+    </h2>
+    <p class="mt-2 text-sm text-slate-600">
+      ¿Quieres imprimir la etiqueta del producto
+      <span class="font-medium text-slate-800">{{ product().name }}</span>?
+    </p>
+
+    @if (printing()) {
+      <p class="mt-3 text-sm text-slate-500">Enviando etiqueta a la impresora Zebra…</p>
+    }
+
+    <div class="mt-6 flex justify-end gap-3">
+      <button
+        type="button"
+        (click)="onCancel()"
+        [disabled]="printing()"
+        class="btn-secondary px-4 py-2 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        Cancelar
+      </button>
+      <button
+        type="button"
+        (click)="onConfirm()"
+        [disabled]="printing()"
+        class="btn-primary px-4 py-2 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {{ printing() ? 'Imprimiendo…' : 'Imprimir' }}
+      </button>
+    </div>
+  </div>
+</div>

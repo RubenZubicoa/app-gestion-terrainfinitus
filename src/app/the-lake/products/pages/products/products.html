@@ -132,7 +132,9 @@
           : 'No hay productos registrados.'
       "
       [trackBy]="trackProduct"
+      [showPrintLabel]="true"
       (edit)="openEditForm($event)"
+      (printLabel)="openPrintLabelDialog($event)"
       (delete)="deleteProduct($event)"
     />
   </div>
@@ -145,5 +147,14 @@
     [categories]="categories()"
     (submitted)="onProductSubmitted($event)"
     (cancelled)="closeForm()"
+  />
+}
+
+@if (showPrintLabelDialog() && printingProduct()) {
+  <app-print-label-dialog
+    [product]="printingProduct()!"
+    [printing]="printingLabel()"
+    (confirmed)="onPrintLabelConfirmed($event)"
+    (cancelled)="closePrintLabelDialog()"
   />
 }

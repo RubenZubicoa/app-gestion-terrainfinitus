@@ -18,44 +18,93 @@
               </th>
             }
             @if (showActions()) {
-              <th scope="col" class="px-4 py-3 font-semibold text-slate-700">Acciones</th>
+              <th scope="col" class="px-4 py-3 text-right font-semibold text-slate-700">
+                Acciones
+              </th>
             }
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-200">
           @for (row of paginatedRows(); track trackBy()(row)) {
-            <tr class="transition hover:bg-[var(--accent-muted)]">
+            <tr class="group transition hover:bg-[var(--accent-muted)]">
               @for (column of columns(); track column.key) {
                 <td class="px-4 py-3 text-slate-900" [class]="column.cellClass">
                   {{ cellValue(row, column) }}
                 </td>
               }
               @if (showActions()) {
-                <td class="px-4 py-3">
-                  <div class="flex flex-wrap items-center gap-2">
+                <td class="px-4 py-3 text-right">
+                  <div
+                    class="inline-flex items-center justify-end gap-1 rounded-xl border border-slate-200/80 bg-white p-1 shadow-sm"
+                    role="group"
+                    aria-label="Acciones de fila"
+                  >
                     <button
                       type="button"
                       (click)="onEdit(row)"
-                      class="rounded-lg border px-3 py-1.5 text-xs font-medium transition hover:bg-[var(--accent-muted)]"
-                      style="border-color: var(--accent-border); color: var(--accent-text)"
+                      title="Editar"
+                      aria-label="Editar"
+                      class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[var(--accent-text)] transition hover:bg-[var(--accent-muted)] hover:text-[var(--accent-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-ring)]"
                     >
-                      Editar
+                      <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path
+                          d="M2.695 14.763l-1.262 3.154a.5.5 0 00.65.65l3.155-1.262a4 4 0 001.343-.885L17.5 5.5a2.121 2.121 0 00-3-3L3.58 13.42a4 4 0 00-.885 1.343z"
+                        />
+                      </svg>
                     </button>
+
                     @if (showChangePassword()) {
                       <button
                         type="button"
                         (click)="onChangePassword(row)"
-                        class="rounded-lg border border-amber-200 px-3 py-1.5 text-xs font-medium text-amber-800 transition hover:bg-amber-50"
+                        title="Cambiar contraseña"
+                        aria-label="Cambiar contraseña"
+                        class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-amber-700 transition hover:bg-amber-50 hover:text-amber-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-400"
                       >
-                        Contraseña
+                        <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                          <path
+                            fill-rule="evenodd"
+                            d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z"
+                            clip-rule="evenodd"
+                          />
+                        </svg>
                       </button>
                     }
+
+                    @if (showPrintLabel()) {
+                      <button
+                        type="button"
+                        (click)="onPrintLabel(row)"
+                        title="Imprimir etiqueta"
+                        aria-label="Imprimir etiqueta"
+                        class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400"
+                      >
+                        <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                          <path
+                            fill-rule="evenodd"
+                            d="M5 2.75A2.75 2.75 0 017.75 0h4.5A2.75 2.75 0 0115 2.75V4h1.25A2.75 2.75 0 0119 6.75v3.5A2.75 2.75 0 0116.25 13H15v2.25A2.75 2.75 0 0112.25 18h-4.5A2.75 2.75 0 015 15.25V13H3.75A2.75 2.75 0 011 9.25v-3.5A2.75 2.75 0 013.75 4H5V2.75zm1.5 1.25h7V2.75c0-.69-.56-1.25-1.25-1.25h-4.5c-.69 0-1.25.56-1.25 1.25V4zm8.75 7.5H16.25c.69 0 1.25-.56 1.25-1.25v-3.5c0-.69-.56-1.25-1.25-1.25H3.75c-.69 0-1.25.56-1.25 1.25v3.5c0 .69.56 1.25 1.25 1.25H4.5v-1.25A.75.75 0 015.25 9h9.5a.75.75 0 01.75.75V11.5zM6.5 13v2.25c0 .69.56 1.25 1.25 1.25h4.5c.69 0 1.25-.56 1.25-1.25V13h-7z"
+                            clip-rule="evenodd"
+                          />
+                        </svg>
+                      </button>
+                    }
+
+                    <span class="mx-0.5 h-5 w-px bg-slate-200" aria-hidden="true"></span>
+
                     <button
                       type="button"
                       (click)="onDelete(row)"
-                      class="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-50"
+                      title="Eliminar"
+                      aria-label="Eliminar"
+                      class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-red-600 transition hover:bg-red-50 hover:text-red-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400"
                     >
-                      Eliminar
+                      <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path
+                          fill-rule="evenodd"
+                          d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
                     </button>
                   </div>
                 </td>

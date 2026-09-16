@@ -13,6 +13,7 @@ import { Category } from '../../../../core/models/the-lake/Category';
 import { Product } from '../../../../core/models/the-lake/Product';
 import { BrandService } from '../../../../core/services/the-lake/brand';
 import { CategoryService } from '../../../../core/services/the-lake/category';
+import { LabelPrintService } from '../../../../core/services/the-lake/label-print.service';
 import { ProductService } from '../../../../core/services/the-lake/product';
 import { formatEuro } from '../../../../shared/utils/currency';
 import {
@@ -20,6 +21,7 @@ import {
   DataTableComponent,
 } from '../../../../shared/components/data-table/data-table';
 import { ProductFormDialog, ProductFormSubmit } from '../../components/product-form-dialog/product-form-dialog';
+import { PrintLabelDialog } from '../../components/print-label-dialog/print-label-dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 type TriFilter = 'all' | 'yes' | 'no';
@@ -27,7 +29,7 @@ type TriFilter = 'all' | 'yes' | 'no';
 @Component({
   selector: 'app-products',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DataTableComponent, ProductFormDialog],
+  imports: [DataTableComponent, ProductFormDialog, PrintLabelDialog],
   templateUrl: './products.html',
   styleUrl: './products.css',
 })
@@ -35,6 +37,7 @@ export class Products implements OnInit {
   private readonly productService = inject(ProductService);
   private readonly brandService = inject(BrandService);
   private readonly categoryService = inject(CategoryService);
+  private readonly labelPrintService = inject(LabelPrintService);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly products = signal<Product[]>([]);
@@ -44,6 +47,9 @@ export class Products implements OnInit {
   protected readonly error = signal<string | null>(null);
   protected readonly showForm = signal(false);
   protected readonly editingProduct = signal<Product | null>(null);
+  protected readonly showPrintLabelDialog = signal(false);
+  protected readonly printingProduct = signal<Product | null>(null);
+  protected readonly printingLabel = signal(false);
 
   protected readonly nameFilter = signal('');
   protected readonly brandFilter = signal('all');
@@ -268,6 +274,46 @@ export class Products implements OnInit {
   protected closeForm(): void {
     this.showForm.set(false);
     this.editingProduct.set(null);
+  }
+
+  protected openPrintLabelDialog(product: Product): void {
+    this.printingProduct.set(product);
+    this.showPrintLabelDialog.set(true);
+  }
+
+  protected closePrintLabelDialog(): void {
+    if (this.printingLabel()) {
+      return;
+    }
+
+    this.showPrintLabelDialog.set(false);
+    this.printingProduct.set(null);
+  }
+
+  protected onPrintLabelConfirmed(product: Product): void {
+    if (this.printingLabel()) {
+      return;
+    }
+
+    this.printingLabel.set(true);
+    this.error.set(null);
+
+    this.labelPrintService
+      .printProductLabel(product)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.printingLabel.set(false);
+          this.closePrintLabelDialog();
+        },
+        error: () => {
+          this.printingLabel.set(false);
+          this.error.set(
+            'No se pudo imprimir la etiqueta. Revisa la conexión con la impresora Zebra.',
+          );
+          this.closePrintLabelDialog();
+        },
+      });
   }
 
   protected onProductSubmitted(payload: ProductFormSubmit): void {
