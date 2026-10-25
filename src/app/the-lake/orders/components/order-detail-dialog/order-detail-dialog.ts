@@ -10,6 +10,8 @@ import {
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import {
+  getOrderProductsSubtotal,
+  getOrderTotal,
   ORDER_STATUS_LABELS,
   ORDER_STATUS_OPTIONS,
   Order,
@@ -57,6 +59,14 @@ export class OrderDetailDialog {
   protected get customerName(): string {
     const order = this.order();
     return `${order.name} ${order.lastName}`.trim();
+  }
+
+  protected get productsSubtotal(): number {
+    return getOrderProductsSubtotal(this.order());
+  }
+
+  protected get orderTotal(): number {
+    return getOrderTotal(this.order());
   }
 
   protected onSubmit(event: Event): void {

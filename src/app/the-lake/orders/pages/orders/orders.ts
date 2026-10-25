@@ -11,6 +11,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import {
+  getOrderTotal,
   ORDER_STATUS_LABELS,
   ORDER_STATUS_OPTIONS,
   Order,
@@ -139,10 +140,16 @@ export class Orders implements OnInit {
       format: (order) => order.products.length,
     },
     {
+      key: 'shippingCost',
+      label: 'Envío',
+      cellClass: 'text-slate-600',
+      format: (order) => formatEuro(order.shippingCost),
+    },
+    {
       key: 'total',
       label: 'Total',
       cellClass: 'font-medium text-slate-900',
-      format: (order) => formatEuro(order.total),
+      format: (order) => formatEuro(getOrderTotal(order)),
     },
     {
       key: 'status',

@@ -33,4 +33,9 @@ export const THE_LAKE_ROUTES: Routes = [
         (m) => m.NEWSLETTER_SUBSCRIPTION_ROUTES,
       ),
   },
+  {
+    path: 'costes-envio',
+    loadChildren: () =>
+      import('./shipping-costs/shipping-cost.routes').then((m) => m.SHIPPING_COST_ROUTES),
+  },
 ];

@@ -1,5 +1,5 @@
 import { Category } from '../../models/the-lake/Category';
-import { Order, ORDER_STATUS_LABELS } from '../../models/the-lake/Order';
+import { getOrderTotal, Order, ORDER_STATUS_LABELS } from '../../models/the-lake/Order';
 import { Product } from '../../models/the-lake/Product';
 
 export type AnalyticsChartItem = {
@@ -71,7 +71,8 @@ export function computeOrderAnalytics(
     }
 
     countedOrders += 1;
-    totalRevenue += order.total;
+    const orderTotal = getOrderTotal(order);
+    totalRevenue += orderTotal;
 
     const orderDate = new Date(order.createdAt);
     const sortKey = `${orderDate.getFullYear()}-${String(orderDate.getMonth() + 1).padStart(2, '0')}`;
@@ -80,7 +81,7 @@ export function computeOrderAnalytics(
       year: 'numeric',
     });
     const monthEntry = monthRevenue.get(sortKey) ?? { label: monthLabel, value: 0, sortKey };
-    monthEntry.value += order.total;
+    monthEntry.value += orderTotal;
     monthRevenue.set(sortKey, monthEntry);
 
     for (const item of order.products) {

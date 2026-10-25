@@ -1,5 +1,3 @@
-import { ProductWithQuantity } from "./Product";
-
 export type OrderStatus = 'pending' | 'shipped' | 'delivered' | 'cancelled';
 
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
@@ -30,13 +28,13 @@ export type OrderDB = {
   address: string;
   phone: string;
   email: string;
-  products: {uuid: string; productName: string; qty: number; price: number}[];
+  products: { uuid: string; productName: string; qty: number; price: number }[];
   status: OrderStatus;
   createdAt: string;
-  total: number;
+  shippingCost: number;
   updatedAt?: number;
   isDeleted?: boolean;
-}
+};
 
 export interface Order {
   uuid: string;
@@ -46,17 +44,21 @@ export interface Order {
   address: string;
   phone: string;
   email: string;
-  products: {uuid: string; productName: string; qty: number; price: number}[];
+  products: { uuid: string; productName: string; qty: number; price: number }[];
   status: OrderStatus;
   createdAt: string;
-  total: number;
+  shippingCost: number;
 }
 
 export type AddOrder = Omit<Order, 'uuid' | 'createdAt' | 'updatedAt' | 'status'> & {
   paymentMethod?: string;
 };
+
 export type UpdateOrder = Partial<
-  Pick<Order, 'dni' | 'name' | 'lastName' | 'address' | 'phone' | 'email' | 'status' | 'total'>
+  Pick<
+    Order,
+    'dni' | 'name' | 'lastName' | 'address' | 'phone' | 'email' | 'status' | 'shippingCost'
+  >
 >;
 
 export function mapOrderDBToOrder(orderDB: OrderDB): Order {
@@ -71,6 +73,14 @@ export function mapOrderDBToOrder(orderDB: OrderDB): Order {
     products: orderDB.products,
     status: orderDB.status,
     createdAt: orderDB.createdAt,
-    total: orderDB.total,
-  }
+    shippingCost: Number(orderDB.shippingCost) || 0,
+  };
+}
+
+export function getOrderProductsSubtotal(order: Pick<Order, 'products'>): number {
+  return order.products.reduce((sum, item) => sum + item.qty * item.price, 0);
+}
+
+export function getOrderTotal(order: Pick<Order, 'products' | 'shippingCost'>): number {
+  return getOrderProductsSubtotal(order) + (Number(order.shippingCost) || 0);
 }

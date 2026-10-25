@@ -27,6 +27,12 @@ export const PROJECTS: readonly Project[] = [
         path: '/the-lake/suscripciones',
         icon: 'users',
       },
+      {
+        id: 'costes-envio',
+        label: 'Costes de envío',
+        path: '/the-lake/costes-envio',
+        icon: 'tag',
+      },
     ],
   },
   {
