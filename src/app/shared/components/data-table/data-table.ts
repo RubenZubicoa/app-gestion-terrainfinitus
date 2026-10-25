@@ -12,7 +12,7 @@ export interface DataTableColumn<T> {
   key: string;
   label: string;
   headerClass?: string;
-  cellClass?: string;
+  cellClass?: string | ((row: T) => string | undefined);
   format?: (row: T) => string | number;
 }
 
@@ -35,9 +35,11 @@ export class DataTableComponent<T> {
   readonly delete = output<T>();
   readonly changePassword = output<T>();
   readonly printLabel = output<T>();
+  readonly publish = output<T>();
 
   readonly showChangePassword = input(false);
   readonly showPrintLabel = input(false);
+  readonly showPublish = input(false);
 
   protected readonly currentPage = signal(1);
 
@@ -88,6 +90,14 @@ export class DataTableComponent<T> {
     return typeof value === 'string' || typeof value === 'number' ? value : '';
   }
 
+  protected resolveCellClass(row: T, column: DataTableColumn<T>): string | undefined {
+    if (typeof column.cellClass === 'function') {
+      return column.cellClass(row);
+    }
+
+    return column.cellClass;
+  }
+
   protected previousPage(): void {
     if (this.canGoPrevious()) {
       this.currentPage.update((page) => page - 1);
@@ -110,6 +120,10 @@ export class DataTableComponent<T> {
 
   protected onPrintLabel(row: T): void {
     this.printLabel.emit(row);
+  }
+
+  protected onPublish(row: T): void {
+    this.publish.emit(row);
   }
 
   protected onDelete(row: T): void {

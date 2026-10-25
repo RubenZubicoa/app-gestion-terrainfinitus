@@ -21,4 +21,16 @@ export const THE_LAKE_ROUTES: Routes = [
     path: 'analisis',
     loadChildren: () => import('./analytics/analytics.routes').then(m => m.ANALYTICS_ROUTES),
   },
+  {
+    path: 'newsletters',
+    loadChildren: () =>
+      import('./newsletters/newsletter.routes').then((m) => m.NEWSLETTER_ROUTES),
+  },
+  {
+    path: 'suscripciones',
+    loadChildren: () =>
+      import('./newsletter-subscriptions/newsletter-subscription.routes').then(
+        (m) => m.NEWSLETTER_SUBSCRIPTION_ROUTES,
+      ),
+  },
 ];

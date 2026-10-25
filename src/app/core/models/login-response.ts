@@ -1,11 +1,12 @@
-import { UserDB, User } from "./User";
+import { User, UserDB } from './User';
 
+/** Respuesta del back en POST /login: { user, token } */
 export interface LoginResponseDB {
-    token: string;
-    user: UserDB;
+  user: UserDB;
+  token: string;
 }
 
 export interface LoginResponse {
-    token: string;
-    user: User;
+  user: User;
+  token: string;
 }

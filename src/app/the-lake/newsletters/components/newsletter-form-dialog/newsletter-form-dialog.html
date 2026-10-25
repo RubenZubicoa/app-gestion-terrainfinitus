@@ -1,0 +1,176 @@
+<div
+  class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4"
+  role="dialog"
+  aria-modal="true"
+  [attr.aria-label]="isEditing ? 'Editar newsletter' : 'Agregar newsletter'"
+>
+  <div
+    class="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-slate-200 bg-white p-6 shadow-xl"
+  >
+    <h2 class="text-lg font-semibold text-slate-900">
+      {{ isEditing ? 'Editar newsletter' : 'Agregar newsletter' }}
+    </h2>
+
+    <form class="mt-4 space-y-4" [formGroup]="form" (submit)="onSubmit($event)">
+      @if (showValidationSummary()) {
+        <div
+          class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900"
+          role="alert"
+        >
+          Revisa el formulario: el título es obligatorio
+          @if (!isEditing) {
+            y debes seleccionar un PDF
+          }
+          .
+        </div>
+      }
+
+      <div>
+        <label for="newsletter-title" class="block text-sm font-medium text-slate-700">
+          Título
+        </label>
+        <input
+          id="newsletter-title"
+          type="text"
+          formControlName="title"
+          class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+          [class.border-red-400]="fieldError('title')"
+        />
+        @if (fieldError('title'); as error) {
+          <p class="mt-1.5 text-xs text-red-600">{{ error }}</p>
+        }
+      </div>
+
+      <div>
+        <span class="block text-sm font-medium text-slate-700">
+          PDF
+          @if (!isEditing) {
+            <span class="font-normal text-slate-500">(obligatorio)</span>
+          }
+        </span>
+        <input
+          #pdfInput
+          id="newsletter-pdf"
+          type="file"
+          accept="application/pdf"
+          (change)="onPdfSelected($event)"
+          class="sr-only"
+        />
+
+        <button
+          type="button"
+          (click)="pdfInput.click()"
+          class="mt-1 inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+        >
+          <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path
+              fill-rule="evenodd"
+              d="M4.5 2A1.5 1.5 0 003 3.5v13A1.5 1.5 0 004.5 18h11a1.5 1.5 0 001.5-1.5V7.621a1.5 1.5 0 00-.44-1.06l-4.12-4.122A1.5 1.5 0 0011.378 2H4.5zm4.75 6.75a.75.75 0 00-1.5 0v2.69l-.72-.72a.75.75 0 00-1.06 1.06l2 2a.75.75 0 001.06 0l2-2a.75.75 0 10-1.06-1.06l-.72.72V8.75z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          Seleccionar PDF
+        </button>
+
+        @if (existingPdfPath() && !pdfFileName) {
+          <p class="mt-2 truncate text-xs text-slate-600" [title]="existingPdfPath()!">
+            PDF actual: {{ existingPdfPath() }}
+          </p>
+        }
+
+        @if (pdfFileName) {
+          <div class="mt-2 flex items-center gap-2 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2">
+            <p class="min-w-0 flex-1 truncate text-sm text-sky-900" [title]="pdfFileName">
+              {{ pdfFileName }}
+            </p>
+            <button
+              type="button"
+              (click)="removePdfFile()"
+              class="shrink-0 text-xs font-medium text-sky-800 hover:text-sky-950"
+            >
+              Quitar
+            </button>
+          </div>
+        }
+      </div>
+
+      <div>
+        <span class="block text-sm font-medium text-slate-700">Imagen</span>
+        <input
+          #imageInput
+          id="newsletter-image"
+          type="file"
+          accept="image/*"
+          (change)="onImageSelected($event)"
+          class="sr-only"
+        />
+
+        <button
+          type="button"
+          (click)="imageInput.click()"
+          class="mt-1 inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+        >
+          <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path
+              d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z"
+            />
+          </svg>
+          Seleccionar imagen
+        </button>
+
+        @if (hasExistingImage) {
+          <div class="mt-3">
+            <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Imagen actual</p>
+            <div class="relative mt-2 inline-block">
+              <img
+                [src]="existingImageUrl()"
+                alt="Imagen actual del newsletter"
+                class="h-20 w-28 rounded-lg border border-slate-200 object-cover"
+                (error)="onExistingImageError()"
+              />
+              <button
+                type="button"
+                (click)="removeExistingImage()"
+                class="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 text-xs text-white transition hover:bg-slate-700"
+                aria-label="Eliminar imagen actual"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        }
+
+        @if (hasImagePreview) {
+          <div class="mt-3">
+            <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Nueva imagen</p>
+            <div class="relative mt-2 inline-block">
+              <img
+                [src]="imagePreview()!.previewUrl"
+                [alt]="imagePreview()!.file.name"
+                [title]="imagePreview()!.file.name"
+                class="h-20 w-28 rounded-lg border border-sky-200 object-cover ring-1 ring-sky-100"
+              />
+              <button
+                type="button"
+                (click)="removeNewImage()"
+                class="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 text-xs text-white transition hover:bg-slate-700"
+                aria-label="Eliminar nueva imagen"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="flex justify-end gap-3 pt-2">
+        <button type="button" (click)="onCancel()" class="btn-secondary px-4 py-2">
+          Cancelar
+        </button>
+        <button type="submit" class="btn-primary px-4 py-2">
+          {{ isEditing ? 'Guardar cambios' : 'Agregar newsletter' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
