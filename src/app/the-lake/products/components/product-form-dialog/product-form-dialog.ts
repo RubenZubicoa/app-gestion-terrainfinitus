@@ -12,6 +12,7 @@ import {
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
+  FormArray,
   FormControl,
   FormGroup,
   ReactiveFormsModule,
@@ -21,7 +22,11 @@ import { startWith } from 'rxjs';
 
 import { Brand } from '../../../../core/models/the-lake/Brand';
 import { Category } from '../../../../core/models/the-lake/Category';
-import { Product } from '../../../../core/models/the-lake/Product';
+import {
+  Product,
+  ProductOption,
+  ProductOptionValue,
+} from '../../../../core/models/the-lake/Product';
 
 export type ProductFormValues = {
   name: string;
@@ -34,6 +39,7 @@ export type ProductFormValues = {
   isFeatured: boolean;
   isInOffer?: boolean;
   offerPrice?: number;
+  options: ProductOption[];
 };
 
 export type ProductFormSubmit = {
@@ -52,6 +58,16 @@ type CategorySelection = {
   parentCategoryId: string;
   subcategoryId: string;
 };
+
+type OptionValueGroup = FormGroup<{
+  id: FormControl<string>;
+  label: FormControl<string>;
+}>;
+
+type OptionGroup = FormGroup<{
+  label: FormControl<string>;
+  options: FormArray<OptionValueGroup>;
+}>;
 
 @Component({
   selector: 'app-product-form-dialog',
@@ -93,6 +109,7 @@ export class ProductFormDialog implements OnDestroy {
     isFeatured: new FormControl(false, { nonNullable: true }),
     isInOffer: new FormControl(false, { nonNullable: true }),
     offerPrice: new FormControl<number | null>(null),
+    options: new FormArray<OptionGroup>([]),
   });
 
   private readonly parentCategoryId = toSignal(
@@ -155,6 +172,7 @@ export class ProductFormDialog implements OnDestroy {
                   ? Number(product.offerPrice)
                   : null,
             });
+            this.setOptionGroups(product.options ?? []);
             this.existingImages.set([...product.images]);
             this.brokenExistingImages.set(new Set());
             this.clearNewImagePreviews();
@@ -189,6 +207,7 @@ export class ProductFormDialog implements OnDestroy {
             isInOffer: false,
             offerPrice: null,
           });
+          this.clearOptionGroups();
           this.existingImages.set([]);
           this.brokenExistingImages.set(new Set());
           this.clearNewImagePreviews();
@@ -205,6 +224,42 @@ export class ProductFormDialog implements OnDestroy {
 
   protected get isEditing(): boolean {
     return this.product() !== null;
+  }
+
+  protected get optionGroups(): OptionGroup[] {
+    return this.form.controls.options.controls;
+  }
+
+  protected optionValues(group: OptionGroup): OptionValueGroup[] {
+    return group.controls.options.controls;
+  }
+
+  protected addOptionGroup(): void {
+    this.form.controls.options.push(this.createOptionGroup());
+  }
+
+  protected removeOptionGroup(index: number): void {
+    this.form.controls.options.removeAt(index);
+  }
+
+  protected addOptionValue(groupIndex: number): void {
+    const group = this.form.controls.options.at(groupIndex);
+
+    if (!group) {
+      return;
+    }
+
+    group.controls.options.push(this.createOptionValue());
+  }
+
+  protected removeOptionValue(groupIndex: number, valueIndex: number): void {
+    const group = this.form.controls.options.at(groupIndex);
+
+    if (!group || group.controls.options.length <= 1) {
+      return;
+    }
+
+    group.controls.options.removeAt(valueIndex);
   }
 
   protected fieldError(controlName: keyof typeof this.form.controls): string | null {
@@ -303,9 +358,21 @@ export class ProductFormDialog implements OnDestroy {
       isFeatured,
       isInOffer,
       offerPrice,
+      options,
     } = this.form.getRawValue();
     const product = this.product();
     const categoryId = this.resolveProductCategoryId(parentCategoryId, subcategoryId);
+    const normalizedOptions: ProductOption[] = options
+      .map((group) => ({
+        label: group.label.trim(),
+        options: group.options
+          .map((option) => ({
+            id: option.id || crypto.randomUUID(),
+            label: option.label.trim(),
+          }))
+          .filter((option) => option.label.length > 0),
+      }))
+      .filter((group) => group.label.length > 0 && group.options.length > 0);
 
     this.submitted.emit({
       uuid: product?.uuid,
@@ -317,6 +384,7 @@ export class ProductFormDialog implements OnDestroy {
         brandId,
         categoryId,
         isFeatured: Boolean(isFeatured),
+        options: normalizedOptions,
         ...(professionalPrice != null ? { professionalPrice: Number(professionalPrice) } : {}),
         ...(isInOffer && offerPrice != null
           ? { isInOffer: true as const, offerPrice: Number(offerPrice) }
@@ -428,5 +496,37 @@ export class ProductFormDialog implements OnDestroy {
     }
 
     this.imagePreviews.set([]);
+  }
+
+  private setOptionGroups(options: ProductOption[]): void {
+    this.clearOptionGroups();
+
+    for (const group of options) {
+      this.form.controls.options.push(this.createOptionGroup(group));
+    }
+  }
+
+  private clearOptionGroups(): void {
+    while (this.form.controls.options.length > 0) {
+      this.form.controls.options.removeAt(0);
+    }
+  }
+
+  private createOptionGroup(group?: ProductOption): OptionGroup {
+    const values = group?.options?.length ? group.options : [{ id: crypto.randomUUID(), label: '' }];
+
+    return new FormGroup({
+      label: new FormControl(group?.label ?? '', { nonNullable: true }),
+      options: new FormArray<OptionValueGroup>(
+        values.map((value) => this.createOptionValue(value)),
+      ),
+    });
+  }
+
+  private createOptionValue(value?: ProductOptionValue): OptionValueGroup {
+    return new FormGroup({
+      id: new FormControl(value?.id || crypto.randomUUID(), { nonNullable: true }),
+      label: new FormControl(value?.label ?? '', { nonNullable: true }),
+    });
   }
 }

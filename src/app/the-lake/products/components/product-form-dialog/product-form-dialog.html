@@ -199,6 +199,85 @@
         </div>
       }
 
+      <section class="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 class="text-sm font-semibold text-slate-900">Opciones del producto</h3>
+            <p class="mt-0.5 text-xs text-slate-500">
+              Ej. Talla, Color… Cada grupo puede tener varios valores.
+            </p>
+          </div>
+          <button
+            type="button"
+            (click)="addOptionGroup()"
+            class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-100"
+          >
+            Añadir opción
+          </button>
+        </div>
+
+        @if (optionGroups.length === 0) {
+          <p class="text-sm text-slate-500">Este producto no tiene opciones configuradas.</p>
+        }
+
+        @for (group of optionGroups; track $index; let groupIndex = $index) {
+          <div class="space-y-3 rounded-lg border border-slate-200 bg-white p-3">
+            <div class="flex flex-wrap items-end gap-2">
+              <div class="min-w-0 flex-1">
+                <label class="mb-1 block text-xs font-medium text-slate-600">
+                  Nombre de la opción
+                </label>
+                <input
+                  type="text"
+                  [formControl]="group.controls.label"
+                  placeholder="Ej. Talla"
+                  class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+                />
+              </div>
+              <button
+                type="button"
+                (click)="removeOptionGroup(groupIndex)"
+                class="rounded-lg border border-red-200 px-3 py-2 text-xs font-medium text-red-700 transition hover:bg-red-50"
+              >
+                Quitar opción
+              </button>
+            </div>
+
+            <div class="space-y-2">
+              <div class="flex items-center justify-between gap-2">
+                <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Valores</p>
+                <button
+                  type="button"
+                  (click)="addOptionValue(groupIndex)"
+                  class="rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
+                >
+                  Añadir valor
+                </button>
+              </div>
+
+              @for (value of optionValues(group); track value.controls.id.value; let valueIndex = $index) {
+                <div class="flex items-center gap-2">
+                  <input
+                    type="text"
+                    [formControl]="value.controls.label"
+                    placeholder="Ej. S, M, Rojo..."
+                    class="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 accent-focus"
+                  />
+                  <button
+                    type="button"
+                    (click)="removeOptionValue(groupIndex, valueIndex)"
+                    [disabled]="optionValues(group).length <= 1"
+                    class="rounded-lg border border-red-200 px-2.5 py-2 text-xs font-medium text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Quitar
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </section>
+
       <div>
         <span class="block text-sm font-medium text-slate-700">Imágenes</span>
         <input

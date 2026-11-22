@@ -342,6 +342,7 @@ export class Products implements OnInit {
                   isInOffer: null,
                   offerPrice: null,
                 }),
+            options: payload.values.options,
             existingImages: payload.existingImageUrls,
           },
           payload.imageFiles,
@@ -376,6 +377,7 @@ export class Products implements OnInit {
                 offerPrice: payload.values.offerPrice,
               }
             : {}),
+          options: payload.values.options,
         },
         payload.imageFiles,
       )

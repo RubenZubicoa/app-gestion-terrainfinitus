@@ -2,76 +2,100 @@ import { Brand, BrandDB } from "./Brand";
 import { Category, CategoryDB } from "./Category";
 
 
-type ProductOption = {
-    label: string;
-    options: {
-        id: string;
-        label: string;
-    }[];
+export type ProductOptionValue = {
+  id: string;
+  label: string;
+};
+
+export type ProductOption = {
+  label: string;
+  options: ProductOptionValue[];
 };
 
 export type ProductDB = {
-    _id: string;
-    brandId: BrandDB['_id'];
-    name: string;
-    description?: string;
-    price: number;
-    professionalPrice?: number | string | null;
-    stock: number;
-    categoryId: CategoryDB['_id'];
-    images: string[];
-    options?: ProductOption;
-    isFeatured?: boolean | string;
-    isInOffer?: boolean | string | null;
-    offerPrice?: number | string | null;
-    createdAt?: number;
-    updatedAt?: number;
-    isDeleted?: boolean;
-}
+  _id: string;
+  brandId: BrandDB['_id'];
+  name: string;
+  description?: string;
+  price: number;
+  professionalPrice?: number | string | null;
+  stock: number;
+  categoryId: CategoryDB['_id'];
+  images: string[];
+  options?: ProductOption | ProductOption[];
+  isFeatured?: boolean | string;
+  isInOffer?: boolean | string | null;
+  offerPrice?: number | string | null;
+  createdAt?: number;
+  updatedAt?: number;
+  isDeleted?: boolean;
+};
 
 export interface Product {
-    uuid: string;
-    brandId: Brand['uuid'];
-    name: string;
-    description?: string;
-    price: number;
-    professionalPrice?: number;
-    stock: number;
-    categoryId: Category['uuid'];
-    images: string[];
-    options?: ProductOption;
-    isFeatured: boolean;
-    isInOffer?: boolean;
-    offerPrice?: number;
+  uuid: string;
+  brandId: Brand['uuid'];
+  name: string;
+  description?: string;
+  price: number;
+  professionalPrice?: number;
+  stock: number;
+  categoryId: Category['uuid'];
+  images: string[];
+  options: ProductOption[];
+  isFeatured: boolean;
+  isInOffer?: boolean;
+  offerPrice?: number;
 }
 
 export interface ProductCreate {
-    brandId: Brand['uuid'];
-    name: string;
-    description?: string;
-    price: number;
-    professionalPrice?: number;
-    stock: number;
-    categoryId: Category['uuid'];
-    options?: ProductOption[];
-    isFeatured: boolean;
-    isInOffer?: boolean;
-    offerPrice?: number;
+  brandId: Brand['uuid'];
+  name: string;
+  description?: string;
+  price: number;
+  professionalPrice?: number;
+  stock: number;
+  categoryId: Category['uuid'];
+  options?: ProductOption[];
+  isFeatured: boolean;
+  isInOffer?: boolean;
+  offerPrice?: number;
 }
 
 export interface ProductUpdate {
-    brandId?: string;
-    name?: string;
-    description?: string;
-    price?: number;
-    professionalPrice?: number | null;
-    stock?: number;
-    categoryId?: string;
-    existingImages?: string[];
-    options?: ProductOption;
-    isFeatured?: boolean;
-    isInOffer?: boolean | null;
-    offerPrice?: number | null;
+  brandId?: string;
+  name?: string;
+  description?: string;
+  price?: number;
+  professionalPrice?: number | null;
+  stock?: number;
+  categoryId?: string;
+  existingImages?: string[];
+  options?: ProductOption[];
+  isFeatured?: boolean;
+  isInOffer?: boolean | null;
+  offerPrice?: number | null;
+}
+
+export function normalizeProductOptions(
+  options: ProductOption | ProductOption[] | undefined | null,
+): ProductOption[] {
+  if (!options) {
+    return [];
+  }
+
+  const groups = Array.isArray(options) ? options : [options];
+
+  return groups
+    .filter((group) => group && typeof group.label === 'string')
+    .map((group) => ({
+      label: group.label,
+      options: (group.options ?? [])
+        .filter((option) => option && typeof option.label === 'string')
+        .map((option) => ({
+          id: option.id || crypto.randomUUID(),
+          label: option.label,
+        })),
+    }));
 }
 
 export type ProductWithQuantity = Product & {
@@ -109,8 +133,8 @@ export function mapProductDBToProduct(productDB: ProductDB): Product {
         price: productDB.price,
         stock: productDB.stock,
         categoryId: productDB.categoryId,
-        images: productDB.images,
-        options: productDB.options,
+        images: productDB.images ?? [],
+        options: normalizeProductOptions(productDB.options),
         isFeatured: productDB.isFeatured === true || productDB.isFeatured === 'true',
         ...(professionalPrice !== undefined ? { professionalPrice } : {}),
         ...(isInOffer === true ? { isInOffer: true, offerPrice } : {}),

@@ -53,6 +53,10 @@ export class ProductService {
       formData.append('offerPrice', product.offerPrice.toString());
     }
 
+    if (product.options !== undefined) {
+      formData.append('options', JSON.stringify(product.options));
+    }
+
     for (const image of images) {
       formData.append('images', image);
     }
@@ -106,6 +110,10 @@ export class ProductService {
       formData.append('offerPrice', product.offerPrice.toString());
     } else if (product.offerPrice === null) {
       formData.append('offerPrice', 'null');
+    }
+
+    if (product.options !== undefined) {
+      formData.append('options', JSON.stringify(product.options));
     }
 
     const existingImages = product.existingImages ?? [];
