@@ -49,6 +49,25 @@
       </div>
 
       <div>
+        <label for="category-priority" class="block text-sm font-medium text-slate-700">
+          Prioridad
+          <span class="font-normal text-slate-500">(opcional)</span>
+        </label>
+        <input
+          id="category-priority"
+          type="number"
+          min="0"
+          step="1"
+          formControlName="priority"
+          placeholder="Ej. 1, 2, 3…"
+          class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+        />
+        <p class="mt-1.5 text-xs text-slate-500">
+          Cuanto menor sea el número, antes aparecerá en el listado.
+        </p>
+      </div>
+
+      <div>
         <span class="block text-sm font-medium text-slate-700">Imagen</span>
         <input
           #imageInput
@@ -160,6 +179,15 @@
                     [value]="subcategory.description"
                     (input)="updateSubcategoryDescription(index, $any($event.target).value)"
                     placeholder="Descripción (opcional)"
+                    class="mt-2 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900"
+                  />
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    [value]="subcategory.priority ?? ''"
+                    (input)="updateSubcategoryPriority(index, $any($event.target).value)"
+                    placeholder="Prioridad (opcional)"
                     class="mt-2 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900"
                   />
 

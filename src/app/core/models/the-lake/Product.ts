@@ -22,7 +22,7 @@ export type ProductDB = {
   stock: number;
   categoryId: CategoryDB['_id'];
   images: string[];
-  options?: ProductOption | ProductOption[];
+  options?: ProductOption | ProductOption[] | string;
   isFeatured?: boolean | string;
   isInOffer?: boolean | string | null;
   offerPrice?: number | string | null;
@@ -77,16 +77,35 @@ export interface ProductUpdate {
 }
 
 export function normalizeProductOptions(
-  options: ProductOption | ProductOption[] | undefined | null,
+  options: ProductOption | ProductOption[] | string | undefined | null,
 ): ProductOption[] {
   if (!options) {
     return [];
   }
 
-  const groups = Array.isArray(options) ? options : [options];
+  let parsed: unknown = options;
+
+  if (typeof options === 'string') {
+    try {
+      parsed = JSON.parse(options);
+    } catch {
+      return [];
+    }
+  }
+
+  if (!parsed) {
+    return [];
+  }
+
+  const groups = Array.isArray(parsed) ? parsed : [parsed];
 
   return groups
-    .filter((group) => group && typeof group.label === 'string')
+    .filter(
+      (group): group is ProductOption =>
+        !!group &&
+        typeof group === 'object' &&
+        typeof (group as ProductOption).label === 'string',
+    )
     .map((group) => ({
       label: group.label,
       options: (group.options ?? [])
@@ -95,7 +114,8 @@ export function normalizeProductOptions(
           id: option.id || crypto.randomUUID(),
           label: option.label,
         })),
-    }));
+    }))
+    .filter((group) => group.options.length > 0);
 }
 
 export type ProductWithQuantity = Product & {

@@ -16,6 +16,7 @@ export type SubcategoryFormItem = {
   uuid?: string;
   label: string;
   description: string;
+  priority: number | null;
   existingImageUrl: string | null;
   imageFile: File | null;
   previewUrl: string | null;
@@ -30,7 +31,7 @@ export type CategoryFormSubmit =
   | {
       mode: 'parent';
       uuid?: string;
-      values: { label: string; description?: string };
+      values: { label: string; description?: string; priority?: number };
       imageFile: File | null;
       subcategories: SubcategoryFormItem[];
     }
@@ -38,7 +39,7 @@ export type CategoryFormSubmit =
       mode: 'subcategory';
       uuid?: string;
       parentUuid: string;
-      values: { label: string; description?: string };
+      values: { label: string; description?: string; priority?: number };
       imageFile: File | null;
       existingImageUrl: string | null;
     };
@@ -69,6 +70,7 @@ export class CategoryFormDialog implements OnDestroy {
   protected readonly form = new FormGroup({
     label: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     description: new FormControl('', { nonNullable: true }),
+    priority: new FormControl<number | null>(null, { validators: [Validators.min(0)] }),
     parentCategoryId: new FormControl('', { nonNullable: true }),
   });
 
@@ -87,6 +89,7 @@ export class CategoryFormDialog implements OnDestroy {
             this.form.patchValue({
               label: category.label,
               description: category.description ?? '',
+              priority: category.priority ?? null,
               parentCategoryId: '',
             });
             this.replaceSubcategories(
@@ -94,7 +97,7 @@ export class CategoryFormDialog implements OnDestroy {
             );
             this.existingImageUrl.set(category.image ?? null);
           } else {
-            this.form.reset({ label: '', description: '', parentCategoryId: '' });
+            this.form.reset({ label: '', description: '', priority: null, parentCategoryId: '' });
             this.replaceSubcategories([]);
             this.existingImageUrl.set(null);
           }
@@ -110,6 +113,7 @@ export class CategoryFormDialog implements OnDestroy {
             this.form.patchValue({
               label: category.label,
               description: category.description ?? '',
+              priority: category.priority ?? null,
               parentCategoryId: parentCategory?.uuid ?? '',
             });
             this.existingImageUrl.set(category.image ?? null);
@@ -117,6 +121,7 @@ export class CategoryFormDialog implements OnDestroy {
             this.form.reset({
               label: '',
               description: '',
+              priority: null,
               parentCategoryId: parentCategory?.uuid ?? '',
             });
             this.existingImageUrl.set(null);
@@ -173,6 +178,15 @@ export class CategoryFormDialog implements OnDestroy {
       items.map((item, itemIndex) =>
         itemIndex === index ? { ...item, description: value } : item,
       ),
+    );
+  }
+
+  protected updateSubcategoryPriority(index: number, value: string): void {
+    const parsed = value.trim() === '' ? null : Number(value);
+    const priority = parsed !== null && Number.isFinite(parsed) ? parsed : null;
+
+    this.subcategories.update((items) =>
+      items.map((item, itemIndex) => (itemIndex === index ? { ...item, priority } : item)),
     );
   }
 
@@ -303,9 +317,13 @@ export class CategoryFormDialog implements OnDestroy {
       return;
     }
 
-    const { label, description, parentCategoryId } = this.form.getRawValue();
+    const { label, description, priority, parentCategoryId } = this.form.getRawValue();
     const formContext = this.context();
     const imageFile = this.imagePreview()?.file ?? null;
+    const parsedPriority =
+      priority !== null && priority !== undefined && Number.isFinite(Number(priority))
+        ? Number(priority)
+        : undefined;
 
     if (formContext.mode === 'parent') {
       this.submitted.emit({
@@ -314,6 +332,7 @@ export class CategoryFormDialog implements OnDestroy {
         values: {
           label,
           description: description || undefined,
+          ...(parsedPriority !== undefined ? { priority: parsedPriority } : {}),
         },
         imageFile,
         subcategories: this.subcategories().filter((item) => item.label.trim()),
@@ -328,6 +347,7 @@ export class CategoryFormDialog implements OnDestroy {
       values: {
         label,
         description: description || undefined,
+        ...(parsedPriority !== undefined ? { priority: parsedPriority } : {}),
       },
       imageFile,
       existingImageUrl: this.existingImageUrl(),
@@ -343,6 +363,7 @@ export class CategoryFormDialog implements OnDestroy {
       uuid: child?.uuid,
       label: child?.label ?? '',
       description: child?.description ?? '',
+      priority: child?.priority ?? null,
       existingImageUrl: child?.image ?? null,
       imageFile: null,
       previewUrl: null,

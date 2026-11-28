@@ -27,6 +27,7 @@ export type CategoryTableRow = {
   uuid: string;
   label: string;
   description?: string;
+  priority?: number;
   category: Category;
 };
 
@@ -54,6 +55,12 @@ export class Categories implements OnInit {
   protected readonly tableRows = computed(() => this.mapParentCategories(this.categories()));
 
   protected readonly tableColumns = computed<DataTableColumn<CategoryTableRow>[]>(() => [
+    {
+      key: 'priority',
+      label: 'Prioridad',
+      cellClass: 'text-slate-600',
+      format: (row) => (row.priority !== undefined ? row.priority : '—'),
+    },
     {
       key: 'label',
       label: 'Nombre',
@@ -144,6 +151,7 @@ export class Categories implements OnInit {
       label: payload.values.label,
       description: payload.values.description,
       image: payload.imageFile ?? undefined,
+      ...(payload.values.priority !== undefined ? { priority: payload.values.priority } : {}),
     };
 
     const request = payload.uuid
@@ -187,6 +195,7 @@ export class Categories implements OnInit {
       label: payload.values.label,
       description: payload.values.description,
       image: payload.imageFile ?? undefined,
+      ...(payload.values.priority !== undefined ? { priority: payload.values.priority } : {}),
     };
 
     const request = payload.uuid
@@ -221,6 +230,7 @@ export class Categories implements OnInit {
           label: subcategory.label,
           description: subcategory.description || undefined,
           image: subcategory.imageFile ?? undefined,
+          ...(subcategory.priority !== null ? { priority: subcategory.priority } : {}),
         };
 
         if (subcategory.uuid) {
@@ -243,12 +253,18 @@ export class Categories implements OnInit {
   }
 
   private mapParentCategories(categories: Category[]): CategoryTableRow[] {
-    return categories.map((category) => ({
-      uuid: category.uuid,
-      label: category.label,
-      description: category.description,
-      category,
-    }));
+    return [...categories]
+      .sort(
+        (a, b) =>
+          (a.priority ?? Number.MAX_SAFE_INTEGER) - (b.priority ?? Number.MAX_SAFE_INTEGER),
+      )
+      .map((category) => ({
+        uuid: category.uuid,
+        label: category.label,
+        description: category.description,
+        priority: category.priority,
+        category,
+      }));
   }
 
   private loadCategories(): void {

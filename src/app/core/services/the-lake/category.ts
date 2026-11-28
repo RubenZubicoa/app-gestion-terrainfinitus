@@ -78,6 +78,10 @@ export class CategoryService {
       formData.append('description', category.description);
     }
 
+    if (category.priority !== undefined) {
+      formData.append('priority', String(category.priority));
+    }
+
     if (category.image) {
       formData.append('image', category.image);
     }
@@ -88,6 +92,7 @@ export class CategoryService {
         label: child.label,
         description: child.description,
         image: typeof child.image === 'string' ? child.image : undefined,
+        ...(child.priority !== undefined ? { priority: child.priority } : {}),
       }));
 
       formData.append('children', JSON.stringify(childrenPayload));
